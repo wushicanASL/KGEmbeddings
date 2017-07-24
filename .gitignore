@@ -1,7 +1,9 @@
 .vscode/*
 .vscode
 *.o
+*.out
+*.log
 *.zip
 documents/*
-getRbox
-getRboxDebug
+*.exe
+*.rbox
