@@ -3,7 +3,9 @@ import theano
 import theano.tensor as T
 from dev_test import output_result
 
-entity2id_fid = open('../FB13_bern/entity2id.txt')
+path = 'FB13_bern'
+
+entity2id_fid = open('../'+path+'/entity2id.txt')
 entity2id = {}
 count = 0
 for e in entity2id_fid :
@@ -12,7 +14,7 @@ for e in entity2id_fid :
     count += 1
 entity2id_fid.close()
 
-relation2id_fid = open('../FB13_bern/relation2id.txt')
+relation2id_fid = open('../'+path+'/relation2id.txt')
 relation2id = {}
 count = 0
 for e in relation2id_fid :
@@ -23,7 +25,7 @@ relation2id_fid.close()
 
 
 
-dev_fid = open('../FB13_bern/dev.txt')
+dev_fid = open('../'+path+'/dev.txt')
 dev_data = dev_fid.readlines()
 dev_fid.close()
 dev_triples = []
@@ -44,7 +46,7 @@ for dev_t in dev_data:
 print("hi watch this\n")    
 print(len(dev_triples))
 
-test_fid = open('../FB13_bern/test.txt')
+test_fid = open('../'+path+'/test.txt')
 test_data = test_fid.readlines()
 test_fid.close()
 test_triples = []
@@ -82,16 +84,19 @@ def score():
     rel_embed = T.matrix('rel_embed')
     #A_h_mat = T.tensor3('A_h_mat') #3D tensor means 
     #A_t_mat = T.tensor3('A_t_mat')
-    W_embed = T.matrix('W_embed')
+    Wr_embed = T.matrix('Wr_embed')
+    We_embed = T.matrix('We_embed')
     h = ent_embed[idx[:,0]]
     r = rel_embed[idx[:,1]]
     t = ent_embed[idx[:,2]]
-    Wh = W_embed[idx[:,0]]
-    Wr = W_embed[idx[:,1]]
-    Wt = W_embed[idx[:,2]]
+    #WE = W_embed[13:,:]
+    #WR = W_embed[0:13,:]
+    Wh = We_embed[idx[:,0]]
+    Wr = Wr_embed[idx[:,1]]
+    Wt = We_embed[idx[:,2]]
     #print("the h is ")
+    #print(len(h),len(r),len(t))
     #print(h)
-    #print("\n")
 
     #A_m = A_mat[idx[:,1]]
     #A_h = A_h_mat[idx[:,1]]
@@ -100,13 +105,14 @@ def score():
     #This function computes the dot product between the two tensors
     #
     #res = (t-np.dot(W,t)*W) - (h-(np.dot(h, W)*W)) - r  
-    res = t + np.dot(Wt,t)*Wr - (h + np.dot(Wh,h)*Wr) - r
+    res =  t + np.dot(Wt,t)*Wr - (h + np.dot(Wh,h)*Wr) - r 
     #score = -norm_matrix(res)
     #score =-T.sum( T.abs_(res),axis=1)
     #res = h+r-t
-    #res = res**2
+    #res = res*res
     score = -T.sum( T.abs_(res),axis=1)
-    return theano.function(inputs = [idx, ent_embed, rel_embed ,W_embed],\
+    #score = norm_matrix(res)
+    return theano.function(inputs = [idx, ent_embed, rel_embed ,Wr_embed,We_embed],\
                            outputs = score,on_unused_input='ignore')
      #theano.function(inputs = [idx, ent_embed, rel_embed],\
                            #outputs = score,on_unused_input='ignore')
@@ -114,13 +120,14 @@ score_f = score()
 
 
     
-entity2vec = np.loadtxt('../FB13_bern/entity2vec.vec')
-relation2vec = np.loadtxt('../FB13_bern/relation2vec.vec')
-W_embed = np.loadtxt('../FB13_bern/A.vec')#.reshape((n_relation+6,100))
+entity2vec = np.loadtxt('../'+path+'/entity2vec.vec')
+relation2vec = np.loadtxt('../'+path+'/relation2vec.vec')
+Wr_embed = np.loadtxt('../'+path+'/Ar.vec')#.reshape((n_relation+6,100))
     #A_t = np.loadtxt('../TranSparse/A_t.bern'+str(i)).reshape((n_relation,20,20))
+We_embed = np.loadtxt('../'+path+'/Ae.vec')
    
-dev_score = score_f(dev_triples_idx, entity2vec,  relation2vec,W_embed)
-test_score = score_f(test_triples_idx, entity2vec, relation2vec,W_embed)
+dev_score = score_f(dev_triples_idx, entity2vec,  relation2vec,Wr_embed,We_embed)
+test_score = score_f(test_triples_idx, entity2vec, relation2vec,Wr_embed,We_embed)
 
 output_result(dev_triples, dev_score, test_triples, test_score, relation_list)
 

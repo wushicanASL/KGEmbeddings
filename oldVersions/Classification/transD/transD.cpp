@@ -12,12 +12,12 @@ using namespace std;
 
 const float pi = 3.141592653589793238462643383;
 
-int bern = 0;
+int bern = 1;
 int transDThreads = 8;
 int transDTrainTimes = 1000;
-int nbatches = 200;
-int dimension = 100;
-int dimensionR = 100;
+int nbatches = 100;
+int dimension = 50;
+int dimensionR = 50;
 float transDAlpha = 0.001;
 float margin = 1;
 
@@ -260,7 +260,7 @@ void init() {
 int transDLen;
 int transDBatch;
 float res;
-
+//score function 
 float calc_sum(int e1, int e2, int rel, float *tmp1, float *tmp2, float &ee1, float &ee2) {
 	int last1 = e1 * dimension;
 	int last2 = e2 * dimension;
@@ -459,7 +459,8 @@ void out_transD() {
 		}
 		fclose(f2);
 		fclose(f3);
-		FILE* f1 = fopen((outPath + "A.vec").c_str(),"w");
+		FILE* f1 = fopen((outPath + "Ar.vec").c_str(),"w");
+		FILE* f4 = fopen((outPath + "Ae.vec").c_str(),"w");
 		for (int i = 0; i < relationTotal; i++) {
 			int last = dimensionR * i;
 			for (int ii = 0; ii < dimensionR; ii++)
@@ -469,10 +470,11 @@ void out_transD() {
 		for (int  i = 0; i < entityTotal; i++) {
 			int last = i * dimension;
 			for (int ii = 0; ii < dimension; ii++)
-				fprintf(f1, "%.6f\t", entityTransVec[last + ii] );
-			fprintf(f1,"\n");
+				fprintf(f4, "%.6f\t", entityTransVec[last + ii] );
+			fprintf(f4,"\n");
 		}
 		fclose(f1);
+		fclose(f4);
 }
 
 /*

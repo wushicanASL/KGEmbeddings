@@ -1,0 +1,1 @@
+First ,in folder transD run the transD.cpp then it will generate foure files in folder FB13_bern (or WN11_bern),entity2vec.vec,relation2vec.vec,Ae.vec,Ar.vec. In folder test run the dev_test.py then run main.py.
