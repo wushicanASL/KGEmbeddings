@@ -7,6 +7,8 @@
 
 #include "DataSet.h"
 
+using namespace sysukg;
+
 typedef std::set<std::string> strset;
 typedef std::vector<bool> boolvec;
 
@@ -81,7 +83,7 @@ int main(int argc, char *argv[]) {
                         if (isTran) {
                             flag0 = false;
                             flag1 = true;
-                            reset = &ds.getIndex_r_h(r, item.t);
+                            reset = &ds.getIndex_r(r);
                             for (auto & jtem: *reset) {
                                 flag0 = true;
                                 if (rset->find(Triple(item.h, r, jtem.t, true)) == rset->end())
@@ -103,11 +105,11 @@ int main(int argc, char *argv[]) {
                                 isIrre = false;
                         }
                         if (isFunc) {
-                            if (ds.getIndex_r_h(r, item.h).size() > 1)
+                            if (ds.getIndex_r(r).size() > 1)
                                 isFunc = false;
                         }
                         if (isIfun) {
-                            if (ds.getIndex_r_t(r, item.t).size() > 1)
+                            if (ds.getIndex_r(r).size() > 1)
                                 isIfun = false;
                         }
                     }
@@ -161,8 +163,8 @@ int main(int argc, char *argv[]) {
                         flag1 = true;
                         for (auto & item : *rset)
                             if (item.f) {
-                                sset = &ds.getIndex_r_h(s, item.t);
-                                tset = &ds.getIndex_r_h(t, item.h);
+                                sset = &ds.getIndex_r(s);
+                                tset = &ds.getIndex_r(t);
                                 for (auto & jtem : *sset)
                                     if (jtem.f) {
                                         flag0 = true;

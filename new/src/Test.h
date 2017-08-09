@@ -9,9 +9,9 @@
 
 class Test {
 private:
-    EmbeddingModel _em;
+    const EmbeddingModel * _em;
 public:
-    explicit Test(const EmbeddingModel & em) : _em(em) {}
+    explicit Test(const EmbeddingModel * em) : _em(em) {}
     void doLinkPredictionTest(std::ostream & os = std::cout) const;
     inline void doLinkPredictionTest(const std::string & filename) const {
         std::ofstream fout(filename);

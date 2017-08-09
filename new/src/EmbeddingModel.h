@@ -3,72 +3,74 @@
 
 #include <cmath>
 #include <cstdlib>
+#include <string>
 
 #include "DataSet.h"
 #include "Triple.h"
+#include "random.h"
 
-class EmbeddingModel {
-private:
-    unsigned long long * next_random;
+namespace sysukg {
+    class EmbeddingModel {
+    protected:
+        DataSet _ds;
+        static random_device & _rd;
+        unsigned _dim;
+        typedef std::vector<float> fltvec;
+        typedef std::vector< std::vector<float> > fltmat;
+        typedef std::pair<fltmat, fltmat> EmbeddedData; // first = relations, second = entities
+        EmbeddedData _ed;
 
-protected:
-    DataSet _ds;
-    unsigned _dim;
-    typedef std::vector<float> fltvec;
-    typedef std::vector< std::vector<float> > fltmat;
-    typedef std::pair<fltmat, fltmat> EmbeddedData; // first = relations, second = entities
-    EmbeddedData _ed;
-
-    inline unsigned long long randd(int id) {
-        next_random[id] = next_random[id] * (unsigned long long)25214903917 + 11;
-        return next_random[id];
-    }
-    inline int rand_max(int id, int x) {
-        int res = randd(id) % x;
-        while (res<0)
-            res+=x;
-        return res;
-    }
-    inline float rand(float min, float max) const {
-        return min + (max - min) * rand() / (RAND_MAX + 1.0);
-    }
-    inline float normal(float x, float miu, float sigma) const {
-        return 1.0/sqrt(2*pi)/sigma*exp(-1*(x-miu)*(x-miu)/(2*sigma*sigma));
-    }
-    inline float randn(float miu,float sigma, float min ,float max) const {
-        float x, y, dScope;
-        do {
-            x = rand(min,max);
-            y = normal(x,miu,sigma);
-            dScope=rand(0.0,normal(miu,miu,sigma));
-        } while (dScope > y);
-        return x;
-    }
-    inline float sqr(float x) const {
-        return x * x;
-    }
-    inline void norm(fltvec & v) {
-        float x = 0;
-        for (auto & item : v)
-            x += sqr(item);
-        x = sqrt(x);
-        if (x>1)
+        inline static float sqr(float x) {
+            return x * x;
+        }
+        inline static void norm(fltvec & v) {
+            float x = 0;
             for (auto & item : v)
-                item /= x;
-    }
+                x += sqr(item);
+            x = sqrt(x);
+            if (x>1)
+                for (auto & item : v)
+                    item /= x;
+        }
 
-    inline EmbeddedData init(unsigned dim, unsigned relNum, unsigned entNum) const {
-        return EmbeddedData(
-            fltmat(relNum, norm(fltvec(dim, randn(0, 1.0 / dim, -6 / sqrt(dim), 6 / sqrt(dim))))),
-            fltmat(entNum, norm(fltvec(dim, randn(0, 1.0 / dim, -6 / sqrt(dim), 6 / sqrt(dim)))))
-        );
-    }
+        inline static EmbeddedData emptyED() {
+            return EmbeddedData(fltmat(), fltmat());
+        }
+        static EmbeddedData init(unsigned dim, unsigned relNum, unsigned entNum);
+    
+        inline const fltvec & vh(const Triple & t) const {
+            return _ed.second[t.h];
+        }
+        inline const fltvec & vr(const Triple & t) const {
+            return _ed.first[t.r];
+        }
+        inline const fltvec & vt(const Triple & t) const {
+            return _ed.second[t.t];
+        }
+        inline fltvec & vh(const Triple & t) {
+            return _ed.second[t.h];
+        }
+        inline fltvec & vr(const Triple & t) {
+            return _ed.first[t.r];
+        }
+        inline fltvec & vt(const Triple & t) {
+            return _ed.second[t.t];
+        }
 
-public:
-    EmbeddingModel(DataSet ds, unsigned dim,
-                   EmbeddedData ed = init(dim, ds.relationNum(), ds.entityNum())) :
-        _ds(ds), _dim(dim), _ed(ed) {}
-    virtual float calc_sum(Triple t) = 0;
-};
+
+    public:
+        EmbeddingModel(const DataSet & ds, unsigned dim,
+                    const EmbeddedData & ed = emptyED());
+
+        inline unsigned dim() const {
+            return _dim;
+        }
+        virtual std::string methodName() const = 0;
+
+        virtual float calc_sum(const Triple & t) const = 0;
+        virtual void update(const Triple & pos, const Triple & neg, float rate) = 0;
+        virtual void output(const std::string & ext) const;
+    };
+}
 
 #endif

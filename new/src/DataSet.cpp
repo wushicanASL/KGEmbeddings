@@ -2,6 +2,8 @@
 
 #include <fstream>
 
+using namespace sysukg;
+
 DataSet::tplset DataSet::readTriples(std::string filename, bool have_flag) {
     tplset result;
     Triple temp;
@@ -51,9 +53,6 @@ DataSet::DataSet(const std::string & name, unsigned short testnum) : _NAME(name)
 
     for (id = _relation2id.size() - 1; id >= 0; --id) {
         _index_r[id] = tplset();
-        _index_r_h[id] = _index_r_t[id] = tplsetmap();
-        for (unsigned eid = _entity2id.size() - 1; id >= 0; --id)
-            _index_r_h[id][eid] = _index_r_t[id][eid] = tplset();
     }
 
     _trainset = readTriples("train.txt", false);
@@ -61,4 +60,18 @@ DataSet::DataSet(const std::string & name, unsigned short testnum) : _NAME(name)
     _validset = readTriples("valid.txt", true);
     for (unsigned short i = 0; i < testnum; ++i)
         _testsets.push_back(readTriples(std::string(1, 'A' + i) + "test.txt"));
+}
+
+DataSet::tplset DataSet::allPosTriples() const {
+    tplset result;
+    for (auto & item : _trainset)
+        if (item.f)
+            result.insert(item);
+    for (auto & item : _testset)
+        if (item.f)
+            result.insert(item);
+    for (auto & item : _validset)
+        if (item.f)
+            result.insert(item);
+    return result;
 }
