@@ -2,7 +2,7 @@
 #define __DATASET_H__
 
 #include <string>
-#include <unordered_map>
+#include <map>
 #include <utility>
 #include <set>
 #include <list>
@@ -21,9 +21,9 @@ namespace sysukg {
     class DataSet {
     public:
         typedef std::set<Triple> tplset;
-        typedef std::unordered_map<unsigned, tplset> tplsetmap;
-        typedef std::unordered_map<unsigned, tplset> index_r;
-        typedef std::unordered_map<std::string, unsigned> dictionary;
+        typedef std::map<unsigned, tplset> tplsetmap;
+        typedef std::map<unsigned, tplset> index_r;
+        typedef std::map<std::string, unsigned> dictionary;
         typedef std::list<tplset> setlst;
 
     private:
@@ -37,7 +37,7 @@ namespace sysukg {
         index_r _index_r;
 
     protected:
-        tplset readTriples(const std::string filename, bool have_flag = true);
+        tplset readTriples(const std::string & filename, bool have_flag = true);
         inline void makeIndex(const Triple & t) {
             _index_r[t.r].insert(t);
         }

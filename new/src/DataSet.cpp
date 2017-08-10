@@ -4,14 +4,16 @@
 
 using namespace sysukg;
 
-DataSet::tplset DataSet::readTriples(std::string filename, bool have_flag) {
+DataSet::tplset DataSet::readTriples(const std::string & filename, bool have_flag) {
     tplset result;
     Triple temp;
-    std::ifstream fin((_NAME + '/' + filename).c_str());
+    std::string h, r, t;
+    std::ifstream fin((_NAME + "/" + filename).c_str());
     if (fin.is_open()) {
         if (have_flag) {
             short flag;
-            while (fin >> temp.h >> temp.r >> temp.t >> flag) {
+            while (fin >> h >> r >> t >> flag) {
+                temp = Triple(_entity2id[h], _relation2id[r], _entity2id[t]);
                 if (flag == 1) {
                     temp.f = true;
                     makeIndex(temp);
@@ -21,8 +23,8 @@ DataSet::tplset DataSet::readTriples(std::string filename, bool have_flag) {
                 result.insert(temp);
             }
         } else {
-            temp.f = true;
-            while(fin >> temp.h >> temp.r >> temp.t) {
+            while(fin >> h >> r >> t) {
+                temp = Triple(_entity2id[h], _relation2id[r], _entity2id[t], true);
                 result.insert(temp);
                 makeIndex(temp);
             }
@@ -32,7 +34,7 @@ DataSet::tplset DataSet::readTriples(std::string filename, bool have_flag) {
     return result;
 }
 
-DataSet::DataSet(const std::string & name, unsigned short testnum) : _NAME(name) {
+DataSet::DataSet(const std::string & name, unsigned short testnum) : _NAME("data/" + name) {
     std::string str;
     unsigned id;
     std::ifstream fin((_NAME + "/entity2id.txt").c_str());
@@ -51,7 +53,7 @@ DataSet::DataSet(const std::string & name, unsigned short testnum) : _NAME(name)
     for (auto & item : _entity2id)
         _id2entity[item.second] = item.first;
 
-    for (id = _relation2id.size() - 1; id >= 0; --id) {
+    for (id = 0; id < _relation2id.size(); ++id) {
         _index_r[id] = tplset();
     }
 

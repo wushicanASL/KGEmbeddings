@@ -24,7 +24,7 @@ public:
         return "TransE";
     }
     float calc_sum(const Triple & t) const;
-    void update(const Triple & pos, const Triple & neg, float rate);
+    float update(const Triple & pos, const Triple & neg, float rate, float margin);
     void output(const std::string & ext) const;
 };
 }

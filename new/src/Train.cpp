@@ -4,8 +4,7 @@
 #include <sstream>
 #include <iostream>
 #include <thread>
-#include <atomic>
-#include <chrono>
+#include <iomanip>
 
 using namespace sysukg;
 
@@ -16,34 +15,33 @@ void Train::launch(unsigned nepoch, unsigned output) {
     if (output == 0)
         output = nepoch;
     std::string ext = getExt();
-    std::atomic<unsigned> active_threads;
-    active_threads.store(0);
+    float result;
+    std::thread ** threads = new std::thread*[_threads];
     for (unsigned i = 0; i < nepoch; ++i) {
+        result = 0;
         for (unsigned j = 0; j < _threads; ++j)
-            std::thread (
-                [this, &active_threads]() -> void {
-                    ++active_threads;
+            threads[j] = new std::thread(
+                [this, &result]() -> void {
                     std::pair<Triple, Triple> t;
+                    float temp;
                     for (unsigned k = _sm->size() / _threads + 1; k > 0; --k) {
                         t = _sm->sample();
-                        _em->update(t.first, t.second, _rate);
+                        temp = _em->update(t.first, t.second, _rate, _margin);
+                        result += temp;
                     }
-                    --active_threads;
                 }
-            ).detach();
-        while (active_threads.load() > 0)
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        if ((i + 1) % output == 0)
-            std::thread (
-                [&ext, this, i, &active_threads]() -> void {
-                    ++active_threads;
-                    std::stringstream ss;
-                    ss << ext << "-epoch-" << i;
-                    _em->output(ss.str());
-                    --active_threads;
-                }
-            ).detach();
+            );
+        for (unsigned j = 0; j < _threads; ++j)
+            threads[j]->join();
+        std::cout << "epoch " << std::setw(5) << i;
+        std::cout << " : " << std::fixed << std::setw(10) << std::setprecision(3) << result << std::endl;
+        if ((i + 1) % output == 0) {
+            std::stringstream ss;
+            ss << ext << "-epoch-" << i;
+            _em->output(ss.str());
+        }
+        for (unsigned j = 0; j < _threads; ++j)
+            delete threads[j];
     }
-    while (active_threads.load() > 0)
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    delete threads;
 }

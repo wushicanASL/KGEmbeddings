@@ -68,7 +68,7 @@ namespace sysukg {
         virtual std::string methodName() const = 0;
 
         virtual float calc_sum(const Triple & t) const = 0;
-        virtual void update(const Triple & pos, const Triple & neg, float rate) = 0;
+        virtual float update(const Triple & pos, const Triple & neg, float rate, float margin) = 0;
         virtual void output(const std::string & ext) const;
     };
 }

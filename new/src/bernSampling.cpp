@@ -10,7 +10,7 @@ using namespace sysukg;
 
 bernSampling::bernSampling(const DataSet & ds) :
     unifSampling(ds), _counter([](const DataSet & ds) -> std::pair<fltvec, fltvec> {
-        fltvec left_num(0, ds.relationNum()), right_num(0, ds.relationNum());
+        fltvec left_num(ds.relationNum(), 0), right_num(ds.relationNum(), 0);
         std::set<unsigned> leftset, rightset;
         for (unsigned i = 0; i < ds.relationNum(); ++i) {
             const DataSet::tplset & rset = ds.getIndex_r(i);
@@ -21,8 +21,12 @@ bernSampling::bernSampling(const DataSet & ds) :
                     leftset.insert(item.h);
                     rightset.insert(item.t);
                 }
-            left_num[i] = static_cast<float>(rset.size()) / leftset.size();
-            right_num[i] = static_cast<float>(rset.size()) / rightset.size();
+            if (leftset.size() == 0 || rightset.size() == 0) {
+                left_num[i] = right_num[i] = 1;
+            } else {
+                left_num[i] = static_cast<float>(rset.size()) / leftset.size();
+                right_num[i] = static_cast<float>(rset.size()) / rightset.size();
+            }
         }
         return std::pair<fltvec, fltvec>(left_num, right_num);
     }(ds)) {}
