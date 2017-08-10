@@ -1,0 +1,5 @@
+size : 50
+learing rate : 0.010000
+margin : 1.000000
+method : 1
+nepoch : 1000
