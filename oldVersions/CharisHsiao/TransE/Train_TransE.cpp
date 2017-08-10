@@ -13,6 +13,7 @@ using namespace std;
 #define pi 3.1415926535897932384626433832795
 
 string ds_name = "WN18";
+int nepoch = 1000;
 bool L1_flag=1;
 
 //normal distribution
@@ -133,8 +134,8 @@ private:
     void bfgs()
     {
         res=0;
-        int nbatches=100;
-        int nepoch = 1000;
+        int nbatches=1;
+      //  int nepoch = 2000;
         int batchsize = fb_h.size()/nbatches;
             for (int epoch=0; epoch<nepoch; epoch++)
             {
@@ -171,7 +172,8 @@ private:
 		            relation_vec = relation_tmp;
 		            entity_vec = entity_tmp;
              	}
-                cout<<"epoch:"<<epoch<<' '<<res<<endl;
+                if(epoch%50 == 0)
+                   cout<<"epoch:"<<epoch<<' '<<res<<endl;
                 FILE* f2 = fopen((ds_name+"/relation2vec."+version).c_str(),"w");
                 FILE* f3 = fopen((ds_name+"/entity2vec."+version).c_str(),"w");
                 for (int i=0; i<relation_num; i++)
@@ -267,18 +269,24 @@ void prepare()
         string s2=buf;
         fscanf(f_kb,"%s",buf);
         string s3=buf;
+       
         if (entity2id.count(s1)==0)
         {
-            cout<<"miss entity:"<<s1<<endl;
+            cout<<"miss head entity:"<<s1<<endl;
         }     
-	 if (relation2id.count(s2)==0)
+	 if (entity2id.count(s2)==0)
         {
-            relation2id[s2] = relation_num;
-            relation_num++;
+            cout<<"miss tail entity:"<<s2<<endl;
+          // relation2id[s2] = relation_num;
+           // relation_num++;
+            //On WN18, the order of train, valid and test set are head, tail, relation.
         }
-        if (entity2id.count(s3)==0)
+        
+        if (relation2id.count(s3)==0)
         {
-            cout<<"miss entity:"<<s2<<endl;
+            cout<<"miss relation :"<<s3<<endl;
+            relation2id[s3] = relation_num;
+            relation_num++;
         }
   
         left_entity[relation2id[s3]][entity2id[s1]]++;
@@ -325,19 +333,24 @@ int ArgPos(char *str, int argc, char **argv) {
 int main(int argc,char**argv)
 {
     srand((unsigned) time(NULL));
-    int method = 0;
-    int dimension = 20;
-    double rate = 0.01;
-    double margin = 2;
+    int method = 1;
+    int dimension = 50;
+    double rate = 0.001;
+    double margin = 1;
     int i;
     if ((i = ArgPos((char *)"-size", argc, argv)) > 0) dimension = atoi(argv[i + 1]);
-    if ((i = ArgPos((char *)"-margin", argc, argv)) > 0) margin = atoi(argv[i + 1]);
+    if ((i = ArgPos((char *)"-nepoch", argc, argv)) > 0) nepoch= atoi(argv[i + 1]);
+    if ((i = ArgPos((char *)"-margin", argc, argv)) > 0) margin = atof(argv[i + 1]);
     if ((i = ArgPos((char *)"-method", argc, argv)) > 0) method = atoi(argv[i + 1]);
-      if ((i = ArgPos((char *)"-rate", argc, argv)) > 0) rate = atoi(argv[i + 1]);
+    if ((i = ArgPos((char *)"-rate", argc, argv)) > 0) rate = atof(argv[i + 1]);
+    if ((i = ArgPos((char *)"-ds", argc, argv)) > 0) ds_name = argv[i + 1];
+
     cout<<"size = "<<dimension<<endl;
     cout<<"learing rate = "<<rate<<endl;
     cout<<"margin = "<<margin<<endl;
      cout<<"method = "<<method<<endl;
+     cout<<"dataset = "<<ds_name<<endl;
+      cout<<"nepoch = "<<nepoch<<endl;
     if (method)
         version = "bern";
     else
@@ -347,8 +360,10 @@ int main(int argc,char**argv)
     train.run(dimension,rate,margin,method);
        FILE* f10 = fopen((ds_name+"/parameter_set_"+version+".txt").c_str(),"w");
        fprintf(f10,"size : %d\n",dimension);
-       fprintf(f10,"learing rate : %ld\n",rate);
+       fprintf(f10,"learing rate : %lf\n",rate);
        fprintf(f10,"margin : %lf\n",margin);
        fprintf(f10,"method : %d\n",method);
+       fprintf(f10,"nepoch : %d\n",nepoch);
        fclose(f10);
 }
+

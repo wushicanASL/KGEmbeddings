@@ -13,7 +13,7 @@ using namespace std;
 string ds_name = "WN18";
 
 bool debug=false;
-bool L1_flag=1;
+bool L1_flag=2;
 
 string version;
 string trainortest = "test";
@@ -26,7 +26,8 @@ map<int,int> e2num;
 map<pair<string,string>,map<string,double> > rel_left,rel_right;
 
 int relation_num,entity_num;
-int n= 20;
+
+int dimension = 20;
 
 double sigmod(double x)
 {
@@ -101,10 +102,10 @@ public:
     {
         double sum=0;
         if (L1_flag)
-        	for (int ii=0; ii<n; ii++)
+        	for (int ii=0; ii<dimension; ii++)
             sum+=-fabs(entity_vec[e2][ii]-entity_vec[e1][ii]-relation_vec[rel][ii]);
         else
-        for (int ii=0; ii<n; ii++)
+        for (int ii=0; ii<dimension; ii++)
             sum+=-sqr(entity_vec[e2][ii]-entity_vec[e1][ii]-relation_vec[rel][ii]);
         return sum;
     }
@@ -117,15 +118,15 @@ public:
         relation_vec.resize(relation_num_fb);
         for (int i=0; i<relation_num_fb;i++)
         {
-            relation_vec[i].resize(n);
-            for (int ii=0; ii<n; ii++)
+            relation_vec[i].resize(dimension);
+            for (int ii=0; ii<dimension; ii++)
                 fscanf(f1,"%lf",&relation_vec[i][ii]);
         }
         entity_vec.resize(entity_num);
         for (int i=0; i<entity_num;i++)
         {
-            entity_vec[i].resize(n);
-            for (int ii=0; ii<n; ii++)
+            entity_vec[i].resize(dimension);
+            for (int ii=0; ii<dimension; ii++)
                 fscanf(f3,"%lf",&entity_vec[i][ii]);
             if (vec_len(entity_vec[i])-1>1e-3)
             	cout<<"wrong_entity "<<i<<' '<<vec_len(entity_vec[i])<<endl;
@@ -141,6 +142,7 @@ public:
 		map<int,double> lp_n_r,lp_n_filter_r;
 		map<int,double> rp_n_r,rp_n_filter_r;
 		map<int,int> rel_num;
+
 
         for (int testid = 0; testid<fb_l.size(); testid+=1)
 		{
@@ -255,7 +257,7 @@ void prepare()
         string s3=buf;
         if (entity2id.count(s1)==0)
         {
-            cout<<"miss entity:"<<s1<<endl;
+         //   cout<<"miss entity:"<<s1<<endl;
         }
         if (entity2id.count(s2)==0)
         {
@@ -326,13 +328,34 @@ void prepare()
 }
 
 
+int ArgPos(char *str, int argc, char **argv) {
+  int a;
+  for (a = 1; a < argc; a++) if (!strcmp(str, argv[a])) {
+    if (a == argc - 1) {
+      printf("Argument missing for %s\n", str);
+      exit(1);
+    }
+    return a;
+  }
+  return -1;
+}
+
 int main(int argc,char**argv)
 {
+    int method = 1;
+    int i;
     if (argc<2)
         return 0;
     else
     {
-        version = argv[1];
+      if ((i = ArgPos((char *)"-ds", argc, argv)) > 0) ds_name = argv[i + 1];
+       if ((i = ArgPos((char *)"-method", argc, argv)) > 0) method = atoi(argv[i + 1]);
+       if ((i = ArgPos((char *)"-size", argc, argv)) > 0) dimension = atoi(argv[i + 1]);
+
+     if (method)
+        version = "bern";
+     else
+        version = "unif";        
         prepare();
         test.run();
     }
