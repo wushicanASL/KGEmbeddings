@@ -2,46 +2,69 @@
 
 #include <string>
 #include <fstream>
+#include <cstring>
+#include <thread>
+#include <functional>
 
 using namespace sysukg;
 
 random_device & EmbeddingModel::_rd = random_device::getInstance();
 
-EmbeddingModel::EmbeddingModel(const DataSet & ds, unsigned dim, const EmbeddedData & ed) :
-    _ds(ds), _dim(dim) {
-    if (ed == emptyED())
-        _ed = init(dim, ds.relationNum(), ds.entityNum());
+EmbeddingModel::EmbeddingModel(const DataSet & ds, unsigned dim, const EmbeddedData * ed) :
+    _ds(ds), _dim(dim), _relSize(ds.relationNum()), _entSize(ds.entityNum()) {
+    _ed = new EmbeddedData;
+    _ed->first = new float*[_relSize];
+    for (unsigned i = 0; i < _relSize; ++i)
+        _ed->first[i] = new float[dim];
+    _ed->second = new float*[_entSize];
+    for (unsigned i = 0; i < _entSize; ++i)
+        _ed->second[i] = new float[dim];
+
+    if (ed == nullptr)
+        EDreset();
     else
-        _ed = ed;
+        EDcopy(ed);
+}
+
+
+void EmbeddingModel::single_output(const std::string & filename,
+        unsigned num, unsigned dim, float ** mat) {
+    std::ofstream fout(filename);
+    for (unsigned i = 0; i < num; ++i) {
+        fout << mat[i][0];
+        for (unsigned j = 1; j < dim; ++j)
+            fout << ' ' << mat[i][j];
+        fout << std::endl;
+    }
+    fout.close();
 }
 
 void EmbeddingModel::output(const std::string & ext) const {
-    std::ofstream fout("entity2vec." + ext);
-    for (unsigned i = 0; i < _ed.second.size(); ++i) {
-        fout << _ed.second[i][0];
-        for (unsigned j = 1; j < _dim; ++j)
-            fout << ' ' << _ed.second[i][j];
-        fout << std::endl;
-    }
-    fout.close();
-
-    fout.open("relation2vec." + ext);
-    for (unsigned i = 0; i < _ed.first.size(); ++i) {
-        fout << _ed.first[i][0];
-        for (unsigned j = 1; j < _dim; ++j)
-            fout << ' ' << _ed.first[i][j];
-        fout << std::endl;
-    }
-    fout.close();
+    std::thread * threads[2] = {
+        new std::thread{single_output, std::move("relation2vec." + ext),
+            std::ref(_relSize), std::ref(_dim),std::ref(_ed->first)},
+        new std::thread{single_output, std::move("entity2vec." + ext),
+            std::ref(_entSize), std::ref(_dim), std::ref(_ed->second)}
+    };
+    for (char i = 0; i < 2; ++i)
+        threads[i]->join();
+    for (char i = 0; i < 2; ++i)
+        delete threads[i];
 }
 
-EmbeddingModel::EmbeddedData EmbeddingModel::init(unsigned dim, unsigned relNum, unsigned entNum) {
-    EmbeddedData res(fltmat(relNum, fltvec(dim, 0)), fltmat(entNum, fltvec(dim, 0)));
-    for (auto & vec : res.first)
-        for (auto & item : vec)
-            item = _rd.randn(0, 1.0 / dim, -6 / sqrt(dim), 6 / sqrt(dim));
-    for (auto & vec : res.second)
-        for (auto & item : vec)
-            item = _rd.randn(0, 1.0 / dim, -6 / sqrt(dim), 6 / sqrt(dim));
-    return res;
+void EmbeddingModel::EDreset() {
+    for (unsigned i = 0; i < _relSize; ++i)
+        for (unsigned j = 0; j < _dim; ++j)
+            _ed->first[i][j] = _rd.randn(0, 1.0 / _dim, -6 / sqrt(_dim), 6 / sqrt(_dim));
+
+    for (unsigned i = 0; i < _entSize; ++i)
+        for (unsigned j = 0; j < _dim; ++j)
+            _ed->second[i][j] = _rd.randn(0, 1.0 / _dim, -6 / sqrt(_dim), 6 / sqrt(_dim));
+}
+
+void EmbeddingModel::EDcopy(const EmbeddedData * ed) {
+    for (unsigned i = 0; i < _relSize; ++i)
+        memcpy(_ed->first[i], ed->first[i], _dim * sizeof(float));
+    for (unsigned i = 0; i < _entSize; ++i)
+        memcpy(_ed->second[i], ed->second[i], _dim * sizeof(float));
 }

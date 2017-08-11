@@ -14,53 +14,51 @@ namespace sysukg {
     protected:
         DataSet _ds;
         static random_device & _rd;
-        unsigned _dim;
-        typedef std::vector<float> fltvec;
-        typedef std::vector< std::vector<float> > fltmat;
-        typedef std::pair<fltmat, fltmat> EmbeddedData; // first = relations, second = entities
-        EmbeddedData _ed;
+        unsigned _dim, _relSize, _entSize;
+        typedef std::pair<float **, float **> EmbeddedData; // first = relations, second = entities
+        EmbeddedData * _ed;
 
         inline static float sqr(float x) {
             return x * x;
         }
-        inline static void norm(fltvec & v) {
+        inline void norm(float * v) {
             float x = 0;
-            for (auto & item : v)
-                x += sqr(item);
+            for (unsigned i = 0; i < _dim; ++i)
+                x += sqr(v[i]);
             x = sqrt(x);
             if (x>1)
-                for (auto & item : v)
-                    item /= x;
+                for (unsigned i = 0; i < _dim; ++i)
+                    v[i] /= x;
         }
-
-        inline static EmbeddedData emptyED() {
-            return EmbeddedData(fltmat(), fltmat());
-        }
-        static EmbeddedData init(unsigned dim, unsigned relNum, unsigned entNum);
     
-        inline const fltvec & vh(const Triple & t) const {
-            return _ed.second[t.h];
+        inline const float * vh(const Triple & t) const {
+            return _ed->second[t.h];
         }
-        inline const fltvec & vr(const Triple & t) const {
-            return _ed.first[t.r];
+        inline const float * vr(const Triple & t) const {
+            return _ed->first[t.r];
         }
-        inline const fltvec & vt(const Triple & t) const {
-            return _ed.second[t.t];
+        inline const float * vt(const Triple & t) const {
+            return _ed->second[t.t];
         }
-        inline fltvec & vh(const Triple & t) {
-            return _ed.second[t.h];
+        inline float * vh(const Triple & t) {
+            return _ed->second[t.h];
         }
-        inline fltvec & vr(const Triple & t) {
-            return _ed.first[t.r];
+        inline float * vr(const Triple & t) {
+            return _ed->first[t.r];
         }
-        inline fltvec & vt(const Triple & t) {
-            return _ed.second[t.t];
+        inline float * vt(const Triple & t) {
+            return _ed->second[t.t];
         }
 
+        static void single_output(const std::string & filename,
+                        unsigned num, unsigned dim, float ** mat);
 
     public:
         EmbeddingModel(const DataSet & ds, unsigned dim,
-                    const EmbeddedData & ed = emptyED());
+                    const EmbeddedData * ed = nullptr);
+
+        void EDreset();
+        void EDcopy(const EmbeddedData * ed);
 
         inline unsigned dim() const {
             return _dim;
@@ -68,7 +66,8 @@ namespace sysukg {
         virtual std::string methodName() const = 0;
 
         virtual float calc_sum(const Triple & t) const = 0;
-        virtual float update(const Triple & pos, const Triple & neg, float rate, float margin) = 0;
+        virtual float update(const std::pair<Triple, Triple> * samples, unsigned size,
+                             float rate, float margin) = 0;
         virtual void output(const std::string & ext) const;
     };
 }
