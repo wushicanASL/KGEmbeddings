@@ -116,9 +116,9 @@ DataSet::DataSet(const std::string & name) : _NAME("data/" + name + "/") {
     std::sort(_pos_trh, _pos_trh + _possize, Triple_trh_less);
 
     for (unsigned i = 0; i < _possize; ++i) {
-        ++_count_by_h[1 + _pos_hrt[i].h];
-        ++_count_by_r[1 + _pos_hrt[i].r];
-        ++_count_by_t[1 + _pos_hrt[i].t];
+        ++_count_by_h[_pos_hrt[i].h];
+        ++_count_by_r[_pos_hrt[i].r];
+        ++_count_by_t[_pos_hrt[i].t];
     }
     _head_by_h = new unsigned[1 + _entityNum];
     _head_by_r = new unsigned[1 + _relationNum];

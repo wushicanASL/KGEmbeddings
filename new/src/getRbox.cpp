@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
             unsigned short * th = new unsigned short[ds.entityNum()],
                            * ht = new unsigned short[ds.entityNum()];
             do {
-                --r;
+                std::cout << --r << std::endl;
                 memset(ht, 0, ds.entityNum() * sizeof(unsigned short));
                 memset(th, 0, ds.entityNum() * sizeof(unsigned short));
                 isSymm = isTran = isRefl = isAsym = isIrre = isFunc = isIfun = true;
@@ -124,9 +124,7 @@ int main(int argc, char *argv[]) {
                 if (isIrre) outputIrre(fout, ds.getRelationName(r));
                 if (isFunc) outputFunc(fout, ds.getRelationName(r));
                 if (isIfun) outputIfun(fout, ds.getRelationName(r));
-                s = r;
-                do {
-                    --s;
+                for (s = 0; s < r; ++s) {
                     isInve = isDisj = true;
                     sset = ds.getIndex_r(s);
                     for (unsigned i = 0; i < ds.rcount(r); ++i) {
@@ -147,7 +145,7 @@ int main(int argc, char *argv[]) {
                             }
                     if (isInve) outputInve(fout, ds.getRelationName(r), ds.getRelationName(s));
                     if (isDisj) outputDisj(fout, ds.getRelationName(r), ds.getRelationName(s));
-                } while (s > 0);
+                }
                 s = ds.relationNum();
                 do {
                     if (--s != r) {

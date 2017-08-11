@@ -21,11 +21,11 @@ const Any * look_for(const Any * begin, const Any * end, const Any & target,
     while (left < right)
         if (cmp(*(begin + mid), target)) {
             left = mid + 1;
-            mid = (right - left) >> 1;
+            mid = left + ((right - left) >> 1);
         }
         else if (cmp(target, *(begin + mid))) {
             right = mid;
-            mid = (right - left) >> 1;
+            mid = left + ((right - left) >> 1);
         } else {
             return begin + mid;
         }
@@ -38,11 +38,11 @@ const Any * look_for(const Any * begin, const Any * end, const Any & target) {
     while (left < right)
         if (*(begin + mid) < target) {
             left = mid + 1;
-            mid = (right - left) >> 1;
+            mid = left + ((right - left) >> 1);
         }
         else if (target < *(begin + mid)) {
             right = mid;
-            mid = (right - left) >> 1;
+            mid = left + ((right - left) >> 1);
         } else {
             return begin + mid;
         }
