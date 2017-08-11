@@ -1,79 +1,146 @@
 #include "DataSet.h"
 
 #include <fstream>
+#include <thread>
+#include <mutex>
+#include <cstring>
+#include <algorithm>
+#include <functional>
 
 using namespace sysukg;
 
-DataSet::tplset DataSet::readTriples(const std::string & filename, bool have_flag) {
-    tplset result;
+void DataSet::readTriples(const std::string & filename, std::vector<Triple> & target,
+        const std::function<void(const Triple &)> & func) {
+    std::string sth, str, stt;
+    short stf;
     Triple temp;
-    std::string h, r, t;
-    std::ifstream fin((_NAME + "/" + filename).c_str());
-    if (fin.is_open()) {
-        if (have_flag) {
-            short flag;
-            while (fin >> h >> r >> t >> flag) {
-                temp = Triple(_entity2id[h], _relation2id[r], _entity2id[t]);
-                if (flag == 1) {
-                    temp.f = true;
-                    makeIndex(temp);
-                } else {
-                    temp.f = false;
-                }
-                result.insert(temp);
-            }
-        } else {
-            while(fin >> h >> r >> t) {
-                temp = Triple(_entity2id[h], _relation2id[r], _entity2id[t], true);
-                result.insert(temp);
-                makeIndex(temp);
-            }
-        }
-        fin.close();
+    std::ifstream fin((_NAME + filename).c_str());
+    while (fin >> sth >> str >> stt >> stf) {
+        temp.h = _entity2id[sth];
+        temp.r = _relation2id[str];
+        temp.t = _entity2id[stt];
+        temp.f = (stf == 1);
+        target.push_back(temp);
+        if (temp.f)
+            func(temp);
     }
-    return result;
+    fin.close();
 }
 
-DataSet::DataSet(const std::string & name, unsigned short testnum) : _NAME("data/" + name) {
+DataSet::DataSet(const std::string & name) : _NAME("data/" + name + "/") {
     std::string str;
     unsigned id;
-    std::ifstream fin((_NAME + "/entity2id.txt").c_str());
+    std::ifstream fin((_NAME + "entity2id.txt").c_str());
     while (fin >> str >> id)
         _entity2id[str] = id;
     fin.close();
-    fin.open((_NAME + "/relation2id.txt").c_str());
+    fin.open((_NAME + "relation2id.txt").c_str());
     while (fin >> str >> id)
         _relation2id[str] = id;
     fin.close();
 
-    _id2relation.resize(_relation2id.size());
-    _id2entity.resize(_entity2id.size());
+    _entityNum = _entity2id.size();
+    _relationNum = _relation2id.size();
+
+    _count_by_h = new unsigned[_entityNum];
+    _count_by_r = new unsigned[_relationNum];
+    _count_by_t = new unsigned[_entityNum];
+    memset(_count_by_h, 0, _entityNum * sizeof(unsigned));
+    memset(_count_by_r, 0, _relationNum * sizeof(unsigned));
+    memset(_count_by_h, 0, _entityNum * sizeof(unsigned));
+
+    _id2relation = new std::string[_relationNum];
+    _id2entity = new std::string[_entityNum];
     for (auto & item : _relation2id)
         _id2relation[item.second] = item.first;
     for (auto & item : _entity2id)
         _id2entity[item.second] = item.first;
 
-    for (id = 0; id < _relation2id.size(); ++id) {
-        _index_r[id] = tplset();
-    }
+    std::vector<Triple> train, update, test, valid, pos, ptu;
+    std::thread ** threads = new std::thread *[4];
+    std::mutex poslock, ptulock;
+    std::function<void(const Triple &)>
+        func1 = [&pos, &ptu, &poslock, &ptulock](const Triple & t) -> void {
+            poslock.lock();
+            pos.push_back(t);
+            poslock.unlock();
+            ptulock.lock();
+            ptu.push_back(t);
+            ptulock.unlock();
+        },
+        func2 = [&pos, &poslock](const Triple & t) -> void {
+            poslock.lock();
+            pos.push_back(t);
+            poslock.unlock();
+        };
+    threads[0] = new std::thread(&DataSet::readTriples, this, "train.txt", std::ref(train), std::ref(func1));
+    threads[1] = new std::thread(&DataSet::readTriples, this, "update.txt", std::ref(update), std::ref(func1));
+    threads[2] = new std::thread(&DataSet::readTriples, this, "test.txt", std::ref(test), std::ref(func2));
+    threads[3] = new std::thread(&DataSet::readTriples, this, "valid.txt", std::ref(valid), std::ref(func2));
+    for (unsigned short i = 0; i < 4; ++i)
+        threads[i]->join();
 
-    _trainset = readTriples("train.txt", false);
-    _testset = readTriples("test.txt", true);
-    _validset = readTriples("valid.txt", true);
-    for (unsigned short i = 0; i < testnum; ++i)
-        _testsets.push_back(readTriples(std::string(1, 'A' + i) + "test.txt"));
+    _trainsize = train.size();
+    _updatesize = update.size();
+    _testsize = test.size();
+    _validsize = valid.size();
+    _allsize = _trainsize + _updatesize + _testsize + _validsize;
+    _possize = pos.size();
+    _ptusize = ptu.size();
+
+    for (unsigned short i = 0; i < 4; ++i)
+        delete threads[i];
+    delete threads;
+
+    _all = new Triple[_allsize];
+    _trainset = _all;
+    memcpy(_trainset, train.data(), _trainsize * sizeof(Triple));
+    _updateset = _trainset + _trainsize;
+    memcpy(_updateset, update.data(), _updatesize * sizeof(Triple));
+    _testset = _updateset + _updatesize;
+    memcpy(_testset, test.data(), _testsize * sizeof(Triple));
+    _validset = _testset + _testsize;
+    memcpy(_validset, valid.data(), _validsize * sizeof(Triple));
+
+    _ptu = new Triple[_ptusize];
+    memcpy(_ptu, ptu.data(), _ptusize * sizeof(Triple));
+    
+    _pos_hrt = new Triple[_possize];
+    memcpy(_pos_hrt, pos.data(), _possize * sizeof(Triple));
+    std::sort(_pos_hrt, _pos_hrt + _possize, Triple_hrt_less);
+    _pos_rht = new Triple[_possize];
+    memcpy(_pos_rht, pos.data(), _possize * sizeof(Triple));
+    std::sort(_pos_rht, _pos_rht + _possize, Triple_rht_less);
+    _pos_trh = new Triple[_possize];
+    memcpy(_pos_trh, pos.data(), _possize * sizeof(Triple));
+    std::sort(_pos_trh, _pos_trh + _possize, Triple_trh_less);
+
+    for (unsigned i = 0; i < _possize; ++i) {
+        ++_count_by_h[1 + _pos_hrt[i].h];
+        ++_count_by_r[1 + _pos_hrt[i].r];
+        ++_count_by_t[1 + _pos_hrt[i].t];
+    }
+    _head_by_h = new unsigned[1 + _entityNum];
+    _head_by_r = new unsigned[1 + _relationNum];
+    _head_by_t = new unsigned[1 + _entityNum];
+    _head_by_h[0] = 0;
+    _head_by_r[0] = 0;
+    _head_by_t[0] = 0;
+    for (unsigned i = 0; i < _entityNum; ++i) {
+        _head_by_h[i + 1] = _head_by_h[i] + _count_by_h[i];
+        _head_by_t[i + 1] = _head_by_t[i] + _count_by_t[i];
+    }
+    for (unsigned i = 0; i < _relationNum; ++i)
+        _head_by_r[i + 1] = _head_by_r[i] + _count_by_r[i];
 }
 
-DataSet::tplset DataSet::allPosTriples() const {
-    tplset result;
-    for (auto & item : _trainset)
-        if (item.f)
-            result.insert(item);
-    for (auto & item : _testset)
-        if (item.f)
-            result.insert(item);
-    for (auto & item : _validset)
-        if (item.f)
-            result.insert(item);
-    return result;
+DataSet::~DataSet() {
+    delete _all;
+    delete _ptu;
+    delete _pos_hrt;
+    delete _pos_rht;
+    delete _pos_trh;
+    delete _count_by_h;
+    delete _count_by_r;
+    delete _count_by_t;
 }

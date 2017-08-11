@@ -3,9 +3,11 @@
 #include <set>
 #include <string>
 #include <unordered_map>
+#include <cstring>
 #include <vector>
 
 #include "DataSet.h"
+#include "Triple.h"
 
 using namespace sysukg;
 
@@ -69,50 +71,52 @@ int main(int argc, char *argv[]) {
             bool isSymm, isTran, isRefl, isInve, isSubr, isSubc,
                  isAsym, isIrre, isFunc, isIfun, isDisj, flag0, flag1;
             unsigned r = ds.relationNum(), s, t;
-            const DataSet::tplset * rset, * reset, * sset, * tset;
+            const Triple * rset, * sset, * tset;
+            unsigned short * th = new unsigned short[ds.entityNum()],
+                           * ht = new unsigned short[ds.entityNum()];
             do {
                 --r;
+                memset(ht, 0, ds.entityNum() * sizeof(unsigned short));
+                memset(th, 0, ds.entityNum() * sizeof(unsigned short));
                 isSymm = isTran = isRefl = isAsym = isIrre = isFunc = isIfun = true;
-                rset = &ds.getIndex_r(r);
-                for (auto & item : *rset) 
-                    if (item.f) {
-                        if (isSymm) {
-                            if (rset->find(Triple(item.symm())) == rset->end())
-                                isSymm = false;
-                        }
-                        if (isTran) {
-                            flag0 = false;
-                            flag1 = true;
-                            reset = &ds.getIndex_r(r);
-                            for (auto & jtem: *reset) {
-                                flag0 = true;
-                                if (rset->find(Triple(item.h, r, jtem.t, true)) == rset->end())
-                                    flag1 = true;
-                            }
-                            if (flag0 && flag1)
-                                isTran = false;
-                        }
-                        if (isRefl) {
-                            if (item.h != item.t)
-                                isRefl = false;
-                        }
-                        if (isAsym) {
-                            if (rset->find(Triple(item.symm())) != rset->end())
-                                isSymm = false;
-                        }
-                        if (isIrre) {
-                            if (item.h == item.t)
-                                isIrre = false;
-                        }
-                        if (isFunc) {
-                            if (ds.getIndex_r(r).size() > 1)
-                                isFunc = false;
-                        }
-                        if (isIfun) {
-                            if (ds.getIndex_r(r).size() > 1)
-                                isIfun = false;
-                        }
+                rset = ds.getIndex_r(r);
+                for (unsigned i = 0; i < ds.rcount(r); ++i) {
+                    if (isSymm) {
+                        if (look_for(rset, rset + ds.rcount(r), rset[i].symm(), Triple_rht_less) == nullptr)
+                            isSymm = false;
                     }
+                    if (isTran) {
+                        flag0 = false;
+                        flag1 = true;
+                        for (unsigned j = 0; j < ds.rcount(r); ++j) {
+                            flag0 = true;
+                            if (look_for(rset, rset + ds.rcount(r), Triple(rset[i].h, r, rset[j].t, true), Triple_rht_less) == nullptr)
+                                flag1 = true;
+                        }
+                        if (flag0 && flag1)
+                            isTran = false;
+                    }
+                    if (isRefl) {
+                        if (rset[i].h != rset[i].t)
+                            isRefl = false;
+                    }
+                    if (isAsym) {
+                        if (look_for(rset, rset + ds.rcount(r), rset[i].symm(), Triple_rht_less) != nullptr)
+                            isSymm = false;
+                    }
+                    if (isIrre) {
+                        if (rset[i].h == rset[i].t)
+                            isIrre = false;
+                    }
+                    if (isFunc) {
+                        if (++ht[rset[i].h] > 1)
+                            isFunc = false;
+                    }
+                    if (isIfun) {
+                        if (++th[rset[i].t] > 1)
+                            isIfun = false;
+                    }
+                }
                 if (isSymm) outputSymm(fout, ds.getRelationName(r));
                 if (isTran) outputTran(fout, ds.getRelationName(r));
                 if (isRefl) outputRefl(fout, ds.getRelationName(r));
@@ -124,18 +128,23 @@ int main(int argc, char *argv[]) {
                 do {
                     --s;
                     isInve = isDisj = true;
-                    sset = &ds.getIndex_r(s);
-                    for (auto & item : *rset)
-                        if (item.f) {
-                            if (isInve) {
-                                if (sset->find(Triple(item.t, s, item.h, true)) == sset->end())
-                                    isInve = false;
-                            }
-                            if (isDisj) {
-                                if (sset->find(Triple(item.h, s, item.t, true)) != sset->end())
-                                    isDisj = false;
-                            }
+                    sset = ds.getIndex_r(s);
+                    for (unsigned i = 0; i < ds.rcount(r); ++i) {
+                        if (isInve) {
+                            if (look_for(sset, sset + ds.rcount(s), Triple(rset[i].t, s, rset[i].h, true), Triple_rht_less) == nullptr)
+                                isInve = false;
                         }
+                        if (isDisj) {
+                            if (look_for(sset, sset + ds.rcount(s), Triple(rset[i].h, s, rset[i].t, true), Triple_rht_less) != nullptr)
+                                isDisj = false;
+                        }
+                    }
+                    if (isInve)
+                        for (unsigned i = 0; i < ds.rcount(s); ++i)
+                            if (look_for(rset, rset + ds.rcount(r), Triple(sset[i].t, r, sset[i].h, true), Triple_rht_less) == nullptr) {
+                                isInve = false;
+                                break;
+                            }
                     if (isInve) outputInve(fout, ds.getRelationName(r), ds.getRelationName(s));
                     if (isDisj) outputDisj(fout, ds.getRelationName(r), ds.getRelationName(s));
                 } while (s > 0);
@@ -143,9 +152,9 @@ int main(int argc, char *argv[]) {
                 do {
                     if (--s != r) {
                         isSubr = true;
-                        sset = &ds.getIndex_r(s);
-                        for (auto & item : *rset)
-                            if (item.f && sset->find(Triple(item.h, s, item.t, true)) == sset->end()) {
+                        sset = ds.getIndex_r(s);
+                        for (unsigned i = 0; i > ds.rcount(r); ++i)
+                            if (look_for(sset, sset + ds.rcount(s), Triple(rset[i].h, s, rset[i].t, true), Triple_rht_less) == nullptr) {
                                 isSubr = false;
                                 break;
                             }
@@ -161,21 +170,19 @@ int main(int argc, char *argv[]) {
                         --t;
                         flag0 = false;
                         flag1 = true;
-                        for (auto & item : *rset)
-                            if (item.f) {
-                                sset = &ds.getIndex_r(s);
-                                tset = &ds.getIndex_r(t);
-                                for (auto & jtem : *sset)
-                                    if (jtem.f) {
-                                        flag0 = true;
-                                        if (tset->find(Triple(item.h, t, jtem.t)) == tset->end()) {
-                                            flag1 = false;
-                                            break;
-                                        }
-                                    }
-                                if (!flag1)
+                        for (unsigned i = 0; i < ds.rcount(r); ++i) {
+                            sset = ds.getIndex_r(s);
+                            tset = ds.getIndex_r(t);
+                            for (unsigned j = 0; j < ds.rcount(s); ++j) {
+                                flag0 = true;
+                                if (look_for(tset, tset + ds.rcount(t), Triple(rset[i].h, t, sset[j].t), Triple_rht_less) == nullptr) {
+                                    flag1 = false;
                                     break;
+                                }
                             }
+                            if (!flag1)
+                                break;
+                        }
                         isSubc = flag0 && flag1;
                         if (isSubc)
                             outputSubc(fout, ds.getRelationName(r),
