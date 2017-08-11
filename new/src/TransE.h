@@ -17,14 +17,15 @@ private:
     }
 public:
     TransE(const DataSet & ds, unsigned dim,
-            const EmbeddedData & ed = emptyED(),
+            const EmbeddedData * ed = nullptr,
             bool L1_flag = true);
 
     inline std::string methodName() const {
         return "TransE";
     }
     float calc_sum(const Triple & t) const;
-    float update(const Triple & pos, const Triple & neg, float rate, float margin);
+    float update(const std::pair<Triple, Triple> * samples,
+                 unsigned size, float rate, float margin);
     void output(const std::string & ext) const;
 };
 }
