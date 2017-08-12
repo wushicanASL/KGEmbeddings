@@ -1,18 +1,21 @@
+#include <functional>
+
 #include "unifSampling.h"
 #include "Triple.h"
+#include "DataSet.h"
 
 using namespace sysukg;
 
 Triple unifSampling::getNegSamp(const Triple & posSamp) const {
     Triple result(posSamp);
+    unsigned * toChange;
     if (_rd() & 1)
-        do {
-            result.h = _rd(_entNum);
-        } while (_alltriples.find(result) == _alltriples.end());
+        toChange = &(result.h);
     else
-        do {
-            result.t = _rd(_entNum);
-        } while (_alltriples.find(result) == _alltriples.end());
+        toChange = &(result.t);
+    do {
+        *toChange = _rd(_entNum);
+    } while (look_for(_postriples, _posend, result) != nullptr);
     result.f = false;
-    return result;
+    return std::move(result);
 }

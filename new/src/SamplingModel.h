@@ -14,9 +14,8 @@ class SamplingModel {
 protected:
     static random_device & _rd;
 
-    const DataSet::tplset _alltriples;
-    typedef std::vector<Triple> tplvec;
-    const tplvec _pool;
+    const Triple * _postriples, * _pool, * _posend;
+    const unsigned _size;
     const unsigned _entNum;
 
     virtual Triple getPosSamp() const = 0;
@@ -24,15 +23,11 @@ protected:
 public:
     explicit SamplingModel(const DataSet & ds);
 
-    typedef std::pair<Triple, Triple> tplpair;
-    inline virtual tplpair sample() const {
-        Triple posSamp = getPosSamp();
-        return tplpair(posSamp, getNegSamp(posSamp));
-    }
+    virtual void sample(std::pair<Triple, Triple> * target, unsigned num = 1) const;
 
     virtual std::string methodName() const = 0;
     inline unsigned size() const {
-        return _pool.size();
+        return _size;
     }
 };
 }

@@ -8,7 +8,7 @@ namespace sysukg {
 class unifSampling : public SamplingModel {
 protected:
     inline Triple getPosSamp() const {
-        return _pool[_rd(_pool.size())];
+        return _pool[_rd(_size)];
     }
 
     Triple getNegSamp(const Triple & posSamp) const;

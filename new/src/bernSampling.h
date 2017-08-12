@@ -10,14 +10,14 @@
 namespace sysukg {
 class bernSampling : public unifSampling {
 private:
-    typedef std::vector<float> fltvec;
-    const std::pair<fltvec, fltvec> _counter;
+    const float * _prob;
 public:
     explicit bernSampling(const DataSet & ds);
     Triple getNegSamp(const Triple & posSamp) const;
     inline std::string methodName() const {
         return "bern";
     }
+    ~bernSampling();
 };
 }
 

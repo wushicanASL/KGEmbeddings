@@ -22,13 +22,13 @@ void Train::launch(unsigned nepoch, unsigned output) {
         for (unsigned j = 0; j < _threads; ++j)
             threads[j] = new std::thread(
                 [this, &result]() -> void {
-                    std::pair<Triple, Triple> t;
                     float temp;
-                    for (unsigned k = _sm->size() / _threads + 1; k > 0; --k) {
-                        t = _sm->sample();
-                        temp = _em->update(t.first, t.second, _rate, _margin);
-                        result += temp;
-                    }
+                    const unsigned len = _sm->size() / _threads;
+                    std::pair<Triple, Triple> * t = new std::pair<Triple, Triple>[len];
+                    _sm->sample(t, len);
+                    temp = _em->update(t, len, _rate, _margin);
+                    result += temp;
+                    delete []t;
                 }
             );
         for (unsigned j = 0; j < _threads; ++j)

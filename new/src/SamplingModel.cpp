@@ -5,9 +5,13 @@ using namespace sysukg;
 random_device & SamplingModel::_rd = random_device::getInstance();
 
 SamplingModel::SamplingModel(const DataSet & ds) :
-    _pool([](const DataSet & ds) -> tplvec {
-        tplvec res(ds.trainset().begin(), ds.trainset().end());
-        res.insert(res.begin(), ds.updateset().begin(), ds.updateset().end());
-        return res;
-    }(ds)),
-    _entNum(ds.entityNum()), _alltriples(ds.allPosTriples()) {}
+    _pool(ds.ptu()), _postriples(ds.pos_hrt()), _size(ds.ptuSize()),
+    _posend(ds.pos_hrt() + ds.posSize()), _entNum(ds.entityNum()) {}
+
+void SamplingModel::sample(std::pair<Triple, Triple> * target, unsigned num) const {
+    while (num > 0) {
+        --num;
+        target[num].first = getPosSamp();
+        target[num].second = getNegSamp(target[num].first);
+    }
+}

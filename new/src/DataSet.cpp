@@ -135,12 +135,17 @@ DataSet::DataSet(const std::string & name) : _NAME("data/" + name + "/") {
 }
 
 DataSet::~DataSet() {
-    delete _all;
-    delete _ptu;
-    delete _pos_hrt;
-    delete _pos_rht;
-    delete _pos_trh;
-    delete _count_by_h;
-    delete _count_by_r;
-    delete _count_by_t;
+    delete []_all;
+    delete []_ptu;
+    delete []_pos_hrt;
+    delete []_pos_rht;
+    delete []_pos_trh;
+    delete []_count_by_h;
+    delete []_count_by_r;
+    delete []_count_by_t;
+    delete []_id2entity;
+    delete []_id2relation;
+    delete []_head_by_h;
+    delete []_head_by_r;
+    delete []_head_by_t;
 }

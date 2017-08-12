@@ -102,6 +102,13 @@ public:
     inline unsigned validSize() const {
         return _validsize;
     }
+    inline unsigned posSize() const {
+        return _possize;
+    }
+    inline unsigned ptuSize() const {
+        return _ptusize;
+    }
+
     inline unsigned rcount(unsigned id) const {
         return _count_by_r[id];
     }
@@ -130,6 +137,12 @@ public:
     }
     inline const Triple * validset() const {
         return _validset;
+    }
+    inline const Triple * ptu() const {
+        return _ptu;
+    }
+    inline const Triple * pos_hrt() const {
+        return _pos_hrt;
     }
 
     ~DataSet();
