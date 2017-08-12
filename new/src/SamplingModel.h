@@ -1,5 +1,4 @@
-#ifndef __SAMPLINGMODEL_H__
-#define __SAMPLINGMODEL_H__
+#pragma once
 
 #include "DataSet.h"
 #include "Triple.h"
@@ -10,6 +9,7 @@
 #include <string>
 
 namespace sysukg {
+
 class SamplingModel {
 protected:
     static random_device & _rd;
@@ -30,6 +30,5 @@ public:
         return _size;
     }
 };
-}
 
-#endif
+}

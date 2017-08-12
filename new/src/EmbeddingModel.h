@@ -1,5 +1,4 @@
-#ifndef __EMBEDDINGMODEL_H__
-#define __EMBEDDINGMODEL_H__
+#pragma once
 
 #include <cmath>
 #include <cstdlib>
@@ -71,5 +70,3 @@ namespace sysukg {
         virtual void output(const std::string & ext) const;
     };
 }
-
-#endif

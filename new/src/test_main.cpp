@@ -13,6 +13,6 @@ int main() {
     bernSampling bern_FB15k(FB15k);
     Train train(&transE_FB15k, &bern_FB15k);
     train.setThreads(4);
-    train.launch(3000);
+    train.launch(1);
     return 0;
 }

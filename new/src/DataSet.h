@@ -1,5 +1,4 @@
-#ifndef __DATASET_H__
-#define __DATASET_H__
+#pragma once
 
 #include <string>
 #include <map>
@@ -149,5 +148,3 @@ public:
 };
 
 }
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef __BERNSAMPLING_H__
-#define __BERNSAMPLING_H__
+#pragma once
 
 #include "unifSampling.h"
 #include "Triple.h"
@@ -8,6 +7,7 @@
 #include <utility>
 
 namespace sysukg {
+
 class bernSampling : public unifSampling {
 private:
     const float * _prob;
@@ -19,6 +19,5 @@ public:
     }
     ~bernSampling();
 };
-}
 
-#endif
+}

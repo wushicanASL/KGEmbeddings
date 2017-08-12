@@ -1,10 +1,10 @@
-#ifndef __UNIFSAMPLING_H__
-#define __UNIFSAMPLING_H__
+#pragma once
 
 #include "SamplingModel.h"
 #include "Triple.h"
 
 namespace sysukg {
+
 class unifSampling : public SamplingModel {
 protected:
     inline Triple getPosSamp() const {
@@ -19,6 +19,5 @@ public:
         return "unif";
     }
 };
-}
 
-#endif
+}

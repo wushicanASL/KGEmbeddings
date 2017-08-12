@@ -1,5 +1,4 @@
-#ifndef __TRANSE_H__
-#define __TRANSE_H__
+#pragma once
 
 #include "EmbeddingModel.h"
 #include "Triple.h"
@@ -8,6 +7,7 @@
 #include <string>
 
 namespace sysukg {
+
 class TransE : public EmbeddingModel {
 private:
     bool _L1_flag;
@@ -28,6 +28,5 @@ public:
                  unsigned size, float rate, float margin);
     void output(const std::string & ext) const;
 };
-}
 
-#endif
+}

@@ -1,5 +1,4 @@
-#ifndef __RANDOM_H__
-#define __RANDOM_H__
+#pragma once
 
 #include <random>
 #include <cmath>
@@ -7,6 +6,7 @@
 #define pi 3.141592653589793238462643383
 
 namespace sysukg {
+
 class random_device {
 private:
     typedef std::random_device engine;
@@ -35,6 +35,5 @@ public:
     }
     float randn(float miu,float sigma, float min ,float max);
 };
-}
 
-#endif
+}

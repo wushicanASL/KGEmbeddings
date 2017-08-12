@@ -1,5 +1,4 @@
-#ifndef __TRAIN_H__
-#define __TRAIN_H__
+#pragma once
 
 #include "EmbeddingModel.h"
 #include "SamplingModel.h"
@@ -9,6 +8,7 @@
 #include <iomanip>
 
 namespace sysukg {
+
 class Train {
 private:
     constexpr static const float _DEFAULT_RATE = 0.001, _DEFAULT_MARGIN = 1;
@@ -47,6 +47,5 @@ public:
 
     void launch(unsigned nepoch, unsigned output = 0);
 };
-}
 
-#endif
+}

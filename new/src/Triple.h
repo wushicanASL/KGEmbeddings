@@ -1,7 +1,7 @@
-#ifndef __TRIPLE_H__
-#define __TRIPLE_H__
+#pragma once
 
 namespace sysukg {
+
 struct Triple {
     unsigned h, r, t;
     bool f;
@@ -44,5 +44,3 @@ inline bool Triple_trh_less(const Triple & left, const Triple & right) {
 }
 
 }
-
-#endif

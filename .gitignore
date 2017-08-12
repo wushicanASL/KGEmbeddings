@@ -7,3 +7,8 @@
 documents/*
 *.exe
 *.rbox
+*2vec.*
+oldVersions/TransG/Embedding/MultiChannelEmbedding/FB13
+oldVersions/TransG/Embedding/MultiChannelEmbedding/FB15K
+oldVersions/TransG/Embedding/MultiChannelEmbedding/WN11
+oldVersions/TransG/Embedding/MultiChannelEmbedding/WN18
