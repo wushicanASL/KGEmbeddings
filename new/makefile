@@ -71,6 +71,12 @@ bernSampling.o: $(src)/Triple.h $(src)/random.h $(src)/bernSampling.h $(src)/ber
 bernSamplingDebug.o: $(src)/Triple.h $(src)/random.h $(src)/bernSampling.h $(src)/bernSampling.cpp
 	g++ $(src)/bernSampling.cpp -c -o $(bld)/bernSamplingDebug.o $(debugparams)
 
+updateSampling.o: $(src)/Triple.h $(src)/random.h $(src)/updateSampling.h $(src)/updateSampling.cpp
+	g++ $(src)/updateSampling.cpp -c -o $(bld)/updateSampling.o $(params)
+
+updateSamplingDebug.o: $(src)/Triple.h $(src)/random.h $(src)/updateSampling.h $(src)/updateSampling.cpp
+	g++ $(src)/updateSampling.cpp -c -o $(bld)/updateSamplingDebug.o $(debugparams)
+
 .PHONY: clean
 clean:
 	-$(RM) *.exe *.out $(bld)/*
