@@ -11,11 +11,11 @@ ext = exe
 RM = del
 endif
 
-test_main: Train.o DataSet.o TransE.o unifSampling.o bernSampling.o EmbeddingModel.o SamplingModel.o random.o $(src)/test_main.cpp
-	g++ $(src)/test_main.cpp $(bld)/DataSet.o $(bld)/Train.o $(bld)/unifSampling.o $(bld)/bernSampling.o $(bld)/TransE.o $(bld)/EmbeddingModel.o $(bld)/SamplingModel.o $(bld)/random.o -o test_main.$(ext) $(params)
+test_main: Train.o DataSet.o TransE.o unifSampling.o bernSampling.o updateSampling.o EmbeddingModel.o SamplingModel.o random.o $(src)/test_main.cpp
+	g++ $(src)/test_main.cpp $(bld)/DataSet.o $(bld)/Train.o $(bld)/unifSampling.o $(bld)/bernSampling.o $(bld)/updateSampling.o $(bld)/TransE.o $(bld)/EmbeddingModel.o $(bld)/SamplingModel.o $(bld)/random.o -o test_main.$(ext) $(params)
 
-test_mainDebug: TrainDebug.o DataSetDebug.o TransEDebug.o unifSamplingDebug.o bernSamplingDebug.o EmbeddingModelDebug.o SamplingModelDebug.o randomDebug.o $(src)/test_main.cpp
-	g++ $(src)/test_main.cpp $(bld)/DataSetDebug.o $(bld)/TrainDebug.o $(bld)/unifSamplingDebug.o $(bld)/bernSamplingDebug.o $(bld)/TransEDebug.o $(bld)/EmbeddingModelDebug.o $(bld)/SamplingModelDebug.o $(bld)/randomDebug.o -o test_mainDebug.$(ext) $(debugparams)
+test_mainDebug: TrainDebug.o DataSetDebug.o TransEDebug.o unifSamplingDebug.o bernSamplingDebug.o updateSamplingDebug.o EmbeddingModelDebug.o SamplingModelDebug.o randomDebug.o $(src)/test_main.cpp
+	g++ $(src)/test_main.cpp $(bld)/DataSetDebug.o $(bld)/TrainDebug.o $(bld)/unifSamplingDebug.o $(bld)/bernSamplingDebug.o $(bld)/updateSamplingDebug.o $(bld)/TransEDebug.o $(bld)/EmbeddingModelDebug.o $(bld)/SamplingModelDebug.o $(bld)/randomDebug.o -o test_mainDebug.$(ext) $(debugparams)
 
 getRbox: DataSet.o $(src)/getRbox.cpp
 	g++ $(src)/getRbox.cpp $(bld)/DataSet.o -o getRbox.$(ext) $(params)

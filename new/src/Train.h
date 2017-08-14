@@ -20,7 +20,8 @@ private:
 protected:
     std::string getExt() const {
         std::stringstream ss;
-        ss << std::fixed << std::setprecision(3) << _em->methodName() << '-' << _sm->methodName()
+        ss << std::fixed << std::setprecision(3)
+           << _em->methodName() << '-' << _em->dsname() << '-' << _sm->methodName()
            << "-dim-" << _em->dim() << "-rate-" << _rate << "-margin-" << _margin;
         return ss.str();
     }
@@ -45,7 +46,7 @@ public:
         return _margin;
     }
 
-    void launch(unsigned nepoch, unsigned output = 0);
+    void launch(unsigned nepoch, const std::string & runtest = std::string(), unsigned output = 0);
 };
 
 }

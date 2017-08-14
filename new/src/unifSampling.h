@@ -14,7 +14,7 @@ protected:
     Triple getNegSamp(const Triple & posSamp) const;
 
 public:
-    explicit unifSampling(const DataSet & ds) : SamplingModel(ds) {}
+    explicit unifSampling(const DataSet & ds, bool update = false);
     inline std::string methodName() const {
         return "unif";
     }

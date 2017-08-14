@@ -4,7 +4,9 @@
 #include <fstream>
 #include <cstring>
 #include <thread>
+#include <algorithm>
 #include <functional>
+#include <atomic>
 
 using namespace sysukg;
 
@@ -67,4 +69,104 @@ void EmbeddingModel::EDcopy(const EmbeddedData * ed) {
         memcpy(_ed->first[i], ed->first[i], _dim * sizeof(float));
     for (unsigned i = 0; i < _entSize; ++i)
         memcpy(_ed->second[i], ed->second[i], _dim * sizeof(float));
+}
+
+void EmbeddingModel::runLinkPrediction(std::ostream & os, unsigned threadnum) const {
+    std::atomic<unsigned> hrsum, trsum, hrhit, trhit,
+                          hfsum, tfsum, hfhit, tfhit;
+    std::atomic<unsigned> testnum;
+    testnum.store(0);
+    hrsum.store(0); trsum.store(0); hrhit.store(0); trhit.store(0);
+    hfsum.store(0); tfsum.store(0); hfhit.store(0); tfhit.store(0);
+    const Triple * ds_pos_hrt_end = _ds.pos_hrt() + _ds.posSize();
+    std::function<void(unsigned, unsigned)> func =
+        [&](unsigned s, unsigned t) -> void {
+            float baseScore;
+            unsigned hraw, hfiltered, traw, tfiltered;
+            Triple hr, tr;
+            for (unsigned i = s; i < t; ++i)
+                if (_ds.testset()[i].f) {
+                    ++testnum;
+                    baseScore = calc_sum(_ds.testset()[i]);
+                    hraw = traw = 1;
+                    hfiltered = tfiltered = 0;
+                    hr = tr = _ds.testset()[i];
+                    for (unsigned j = 0; j < _entSize; ++j) {
+                        hr.h = tr.t = j;
+                        if (calc_sum(hr) < baseScore)
+                            if (hr.h != _ds.testset()[i].h) {
+                                ++hraw;
+                                if (look_for(_ds.pos_hrt(), ds_pos_hrt_end, hr, Triple_hrt_less) != nullptr)
+                                    ++hfiltered;
+                            }
+                        if (calc_sum(tr) < baseScore)
+                            if (tr.t != _ds.testset()[i].t) {
+                                ++traw;
+                                if (look_for(_ds.pos_hrt(), ds_pos_hrt_end, tr, Triple_hrt_less) != nullptr)
+                                    ++tfiltered;
+                            }
+                    }
+                    hrsum += hraw;
+                    hfiltered = hraw - hfiltered;
+                    hfsum += hfiltered;
+                    if (hraw <= 10) ++hrhit;
+                    if (hfiltered <= 10) ++hfhit;
+                    trsum += traw;
+                    tfiltered = traw - tfiltered;
+                    tfsum += tfiltered;
+                    if (traw <= 10) ++trhit;
+                    if (tfiltered <= 10) ++tfhit;
+                }
+        };
+    float psize = static_cast<float>(_ds.testSize()) / threadnum;
+    std::thread * threads[threadnum];
+    float sum = 0;
+    unsigned last = 0, temp;
+    for (unsigned i = 0; i < threadnum - 1; ++i) {
+        sum += psize;
+        temp = static_cast<unsigned>(sum + 0.5);
+        threads[i] = new std::thread(func, last, temp);
+        last = temp;
+    }
+    threads[threadnum - 1] = new std::thread(func, last, _ds.testSize());
+    for (unsigned i = 0; i < threadnum; ++i)
+        threads[i]->join();
+    float ftestnum = static_cast<float>(testnum);
+    os << hrsum/ftestnum << ' ' << hrhit/ftestnum << ' ' << hfsum/ftestnum << ' ' << hfhit/ftestnum << ' '
+       << trsum/ftestnum << ' ' << trhit/ftestnum << ' ' << tfsum/ftestnum << ' ' << tfhit/ftestnum << std::endl;
+    for (unsigned i = 0; i < threadnum; ++i)
+        delete threads[i];
+}
+
+void EmbeddingModel::runClassificationTest(std::ostream & os) const {
+    TripleWithScore * valid = new TripleWithScore[_ds.validSize()],
+                    * test = new TripleWithScore[_ds.testSize()];
+    for (unsigned i = 0; i < _ds.validSize(); ++i) {
+        valid[i].t = _ds.validset() + i;
+        valid[i].score = calc_sum(*valid[i].t);
+    }
+    for (unsigned i = 0; i < _ds.testSize(); ++i) {
+        test[i].t = _ds.testset() + i;
+        test[i].score = calc_sum(*test[i].t);
+    }
+    std::sort(valid, valid + _ds.validSize());
+    float bestThres = 0;
+    unsigned bestCorrect = 0, leftpos = 0;
+    for (unsigned i = 1; i < _ds.validSize(); ++i) {
+        if (valid[i - 1].t->f)
+            ++leftpos;
+        if (leftpos + (_ds.validSize() >> 1) - (i - leftpos) > bestCorrect) {
+            bestCorrect = leftpos + (_ds.validSize() >> 1) - (i - leftpos);
+            bestThres = (valid[i].score + valid[i - 1].score) / 2.0;
+        }
+    }
+
+    unsigned correctnum = 0;
+    for (unsigned i = 0; i < _ds.testSize(); ++i)
+        if (test[i].t->f ^ test[i].score > bestThres)
+            ++correctnum;
+    os << static_cast<float>(correctnum)/_ds.testSize() << std::endl;
+
+    delete[] test;
+    delete[] valid;
 }

@@ -7,8 +7,8 @@
 
 using namespace sysukg;
 
-bernSampling::bernSampling(const DataSet & ds) :
-    unifSampling(ds), _prob([](const DataSet & ds) -> const float * {
+bernSampling::bernSampling(const DataSet & ds, bool update) :
+    unifSampling(ds, update), _prob([](const DataSet & ds) -> const float * {
         const unsigned relNum = ds.relationNum();
         float * res = new float[relNum];
         std::set<unsigned> leftset[relNum], rightset[relNum];

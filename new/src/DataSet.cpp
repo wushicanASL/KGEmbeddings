@@ -14,7 +14,7 @@ void DataSet::readTriples(const std::string & filename, std::vector<Triple> & ta
     std::string sth, str, stt;
     short stf;
     Triple temp;
-    std::ifstream fin((_NAME + filename).c_str());
+    std::ifstream fin(("data/" + _NAME + "/" + filename).c_str());
     while (fin >> sth >> str >> stt >> stf) {
         temp.h = _entity2id[sth];
         temp.r = _relation2id[str];
@@ -27,14 +27,14 @@ void DataSet::readTriples(const std::string & filename, std::vector<Triple> & ta
     fin.close();
 }
 
-DataSet::DataSet(const std::string & name) : _NAME("data/" + name + "/") {
+DataSet::DataSet(const std::string & name) : _NAME(name) {
     std::string str;
     unsigned id;
-    std::ifstream fin((_NAME + "entity2id.txt").c_str());
+    std::ifstream fin(("data/" + name + "/" + "entity2id.txt").c_str());
     while (fin >> str >> id)
         _entity2id[str] = id;
     fin.close();
-    fin.open((_NAME + "relation2id.txt").c_str());
+    fin.open(("data/" + name + "/" + "relation2id.txt").c_str());
     while (fin >> str >> id)
         _relation2id[str] = id;
     fin.close();
@@ -56,9 +56,9 @@ DataSet::DataSet(const std::string & name) : _NAME("data/" + name + "/") {
     for (auto & item : _entity2id)
         _id2entity[item.second] = item.first;
 
-    std::vector<Triple> train, update, test, valid, pos, ptu;
+    std::vector<Triple> train, update, test, valid, pos, ptu, pt;
     std::thread ** threads = new std::thread *[4];
-    std::mutex poslock, ptulock;
+    std::mutex poslock, ptulock, ptlock;
     std::function<void(const Triple &)>
         func1 = [&pos, &ptu, &poslock, &ptulock](const Triple & t) -> void {
             poslock.lock();
@@ -72,8 +72,19 @@ DataSet::DataSet(const std::string & name) : _NAME("data/" + name + "/") {
             poslock.lock();
             pos.push_back(t);
             poslock.unlock();
+        },
+        func3 = [&pos, &ptu, &poslock, &ptulock, &pt, &ptlock](const Triple & t) -> void {
+            poslock.lock();
+            pos.push_back(t);
+            poslock.unlock();
+            ptulock.lock();
+            ptu.push_back(t);
+            ptulock.unlock();
+            ptlock.lock();
+            pt.push_back(t);
+            ptlock.unlock();
         };
-    threads[0] = new std::thread(&DataSet::readTriples, this, "train.txt", std::ref(train), std::ref(func1));
+    threads[0] = new std::thread(&DataSet::readTriples, this, "train.txt", std::ref(train), std::ref(func3));
     threads[1] = new std::thread(&DataSet::readTriples, this, "update.txt", std::ref(update), std::ref(func1));
     threads[2] = new std::thread(&DataSet::readTriples, this, "test.txt", std::ref(test), std::ref(func2));
     threads[3] = new std::thread(&DataSet::readTriples, this, "valid.txt", std::ref(valid), std::ref(func2));
@@ -87,6 +98,7 @@ DataSet::DataSet(const std::string & name) : _NAME("data/" + name + "/") {
     _allsize = _trainsize + _updatesize + _testsize + _validsize;
     _possize = pos.size();
     _ptusize = ptu.size();
+    _ptsize = pt.size();
 
     for (unsigned short i = 0; i < 4; ++i)
         delete threads[i];
@@ -104,6 +116,8 @@ DataSet::DataSet(const std::string & name) : _NAME("data/" + name + "/") {
 
     _ptu = new Triple[_ptusize];
     memcpy(_ptu, ptu.data(), _ptusize * sizeof(Triple));
+    _pt = new Triple[_ptsize];
+    memcpy(_pt, pt.data(), _ptsize * sizeof(Triple));
     
     _pos_hrt = new Triple[_possize];
     memcpy(_pos_hrt, pos.data(), _possize * sizeof(Triple));
@@ -137,6 +151,7 @@ DataSet::DataSet(const std::string & name) : _NAME("data/" + name + "/") {
 DataSet::~DataSet() {
     delete []_all;
     delete []_ptu;
+    delete []_pt;
     delete []_pos_hrt;
     delete []_pos_rht;
     delete []_pos_trh;

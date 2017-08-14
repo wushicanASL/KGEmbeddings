@@ -6,6 +6,8 @@
 
 using namespace sysukg;
 
+unifSampling::unifSampling(const DataSet & ds, bool update) : SamplingModel(ds, update) {}
+
 Triple unifSampling::getNegSamp(const Triple & posSamp) const {
     Triple result(posSamp);
     unsigned * toChange;

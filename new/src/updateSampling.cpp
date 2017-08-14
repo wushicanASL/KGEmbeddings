@@ -32,7 +32,7 @@ void updateSampling::spfa(float * distance, unsigned size, node ** graph,
 }
 
 updateSampling::updateSampling(const DataSet & ds) :
-        bernSampling(ds), _relNum(ds.relationNum()) {
+        bernSampling(ds, true), _relNum(ds.relationNum()) {
     unsigned ** eGraph = new unsigned*[_entNum],
              ** rGraph = new unsigned*[_relNum];
     for (unsigned i = 0; i < _entNum; ++i) {

@@ -12,7 +12,7 @@ class bernSampling : public unifSampling {
 private:
     const float * _prob;
 public:
-    explicit bernSampling(const DataSet & ds);
+    explicit bernSampling(const DataSet & ds, bool update = false);
     Triple getNegSamp(const Triple & posSamp) const;
     inline std::string methodName() const {
         return "bern";

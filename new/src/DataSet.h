@@ -65,9 +65,9 @@ private:
     dictionary _entity2id, _relation2id;
     std::string * _id2entity, * _id2relation;
 
-    Triple * _all, * _pos_hrt, * _ptu, * _pos_rht, * _pos_trh;
+    Triple * _all, * _pos_hrt, * _ptu, *_pt, * _pos_rht, * _pos_trh;
     Triple * _trainset, * _updateset, * _testset, * _validset;
-    unsigned _allsize, _trainsize, _updatesize, _testsize, _validsize, _possize, _ptusize;
+    unsigned _allsize, _trainsize, _updatesize, _testsize, _validsize, _possize, _ptusize, _ptsize;
     unsigned * _count_by_h, * _count_by_r, * _count_by_t;
     unsigned * _head_by_h, * _head_by_r, * _head_by_t;
     unsigned _entityNum, _relationNum;
@@ -107,6 +107,9 @@ public:
     inline unsigned ptuSize() const {
         return _ptusize;
     }
+    inline unsigned ptSize() const {
+        return _ptsize;
+    }
 
     inline unsigned rcount(unsigned id) const {
         return _count_by_r[id];
@@ -140,8 +143,15 @@ public:
     inline const Triple * ptu() const {
         return _ptu;
     }
+    inline const Triple * pt() const {
+        return _pt;
+    }
     inline const Triple * pos_hrt() const {
         return _pos_hrt;
+    }
+
+    inline const std::string & name() const {
+        return _NAME;
     }
 
     ~DataSet();

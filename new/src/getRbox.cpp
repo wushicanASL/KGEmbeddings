@@ -151,7 +151,7 @@ int main(int argc, char *argv[]) {
                     if (--s != r) {
                         isSubr = true;
                         sset = ds.getIndex_r(s);
-                        for (unsigned i = 0; i > ds.rcount(r); ++i)
+                        for (unsigned i = 0; i < ds.rcount(r); ++i)
                             if (look_for(sset, sset + ds.rcount(s), Triple(rset[i].h, s, rset[i].t, true), Triple_rht_less) == nullptr) {
                                 isSubr = false;
                                 break;
