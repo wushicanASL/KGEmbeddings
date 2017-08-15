@@ -3,6 +3,19 @@ debugparams = -std=c++11 -g -pthread
 bld = build
 src = src
 
+EM = EmbeddingModel.o TransE.o TransH.o
+EMDebug = EmbeddingModelDebug.o TransEDebug.o TransHDebug.o
+EMFile = $(bld)/EmbeddingModel.o $(bld)/TransE.o $(bld)/TransH.o
+EMDebugFile = $(bld)/EmbeddingModelDebug.o $(bld)/TransEDebug.o $(bld)/TransHDebug.o
+SM = SamplingModel.o unifSampling.o bernSampling.o updateSampling.o
+SMDebug = SamplingModelDebug.o unifSamplingDebug.o bernSamplingDebug.o updateSamplingDebug.o
+SMFile = $(bld)/SamplingModel.o $(bld)/unifSampling.o $(bld)/bernSampling.o $(bld)/updateSampling.o
+SMDebugFile = $(bld)/SamplingModelDebug.o $(bld)/unifSamplingDebug.o $(bld)/bernSamplingDebug.o $(bld)/updateSamplingDebug.o
+ALL = $(EM) $(SM) random.o Train.o DataSet.o
+ALLDebug = $(EMDebug) $(SMDebug) randomDebug.o TrainDebug.o DataSetDebug.o
+ALLFile = $(EMFile) $(SMFile) $(bld)/random.o $(bld)/Train.o $(bld)/DataSet.o
+ALLDebugFile = $(EMDebugFile) $(SMDebugFile) $(bld)/randomDebug.o $(bld)/TrainDebug.o $(bld)/DataSetDebug.o
+
 ifeq ($(shell uname), Linux)
 ext = out
 RM = rm
@@ -11,11 +24,11 @@ ext = exe
 RM = del
 endif
 
-test_main: Train.o DataSet.o TransE.o unifSampling.o bernSampling.o updateSampling.o EmbeddingModel.o SamplingModel.o random.o $(src)/test_main.cpp
-	g++ $(src)/test_main.cpp $(bld)/DataSet.o $(bld)/Train.o $(bld)/unifSampling.o $(bld)/bernSampling.o $(bld)/updateSampling.o $(bld)/TransE.o $(bld)/EmbeddingModel.o $(bld)/SamplingModel.o $(bld)/random.o -o test_main.$(ext) $(params)
+test_main: $(ALL) $(src)/test_main.cpp
+	g++ $(src)/test_main.cpp $(ALLFile) -o test_main.$(ext) $(params)
 
-test_mainDebug: TrainDebug.o DataSetDebug.o TransEDebug.o unifSamplingDebug.o bernSamplingDebug.o updateSamplingDebug.o EmbeddingModelDebug.o SamplingModelDebug.o randomDebug.o $(src)/test_main.cpp
-	g++ $(src)/test_main.cpp $(bld)/DataSetDebug.o $(bld)/TrainDebug.o $(bld)/unifSamplingDebug.o $(bld)/bernSamplingDebug.o $(bld)/updateSamplingDebug.o $(bld)/TransEDebug.o $(bld)/EmbeddingModelDebug.o $(bld)/SamplingModelDebug.o $(bld)/randomDebug.o -o test_mainDebug.$(ext) $(debugparams)
+test_mainDebug: $(ALLDebug) $(src)/test_main.cpp
+	g++ $(src)/test_main.cpp $(ALLDebugFile) -o test_mainDebug.$(ext) $(debugparams)
 
 getRbox: DataSet.o $(src)/getRbox.cpp
 	g++ $(src)/getRbox.cpp $(bld)/DataSet.o -o getRbox.$(ext) $(params)
@@ -23,58 +36,64 @@ getRbox: DataSet.o $(src)/getRbox.cpp
 getRboxDebug: DataSetDebug.o $(src)/getRbox.cpp
 	g++ $(src)/getRbox.cpp $(bld)/DataSetDebug.o -o getRboxDebug.$(ext) $(debugparams)
 
-Train.o: $(src)/Train.h $(src)/Train.cpp
+Train.o: $(src)/Train.cpp
 	g++ $(src)/Train.cpp -c -o $(bld)/Train.o $(params)
 
-TrainDebug.o: $(src)/Train.h $(src)/Train.cpp
+TrainDebug.o: $(src)/Train.cpp
 	g++ $(src)/Train.cpp -c -o $(bld)/TrainDebug.o $(debugparams)
 
-random.o: $(src)/random.h $(src)/random.cpp
+random.o: $(src)/random.cpp
 	g++ $(src)/random.cpp -c -o $(bld)/random.o $(params)
 
-randomDebug.o: $(src)/random.h $(src)/random.cpp
+randomDebug.o: $(src)/random.cpp
 	g++ $(src)/random.cpp -c -o $(bld)/randomDebug.o $(debugparams)
 
-DataSet.o: $(src)/DataSet.cpp $(src)/DataSet.h $(src)/Triple.h
+DataSet.o: $(src)/DataSet.cpp
 	g++ $(src)/DataSet.cpp -c -o $(bld)/DataSet.o $(params)
 
-DataSetDebug.o: $(src)/DataSet.cpp $(src)/DataSet.h $(src)/Triple.h
+DataSetDebug.o: $(src)/DataSet.cpp
 	g++ $(src)/DataSet.cpp -c -o $(bld)/DataSetDebug.o $(debugparams)
 
-EmbeddingModel.o: $(src)/EmbeddingModel.cpp $(src)/EmbeddingModel.h $(src)/random.h $(src)/Triple.h
+EmbeddingModel.o: $(src)/EmbeddingModel.cpp
 	g++ $(src)/EmbeddingModel.cpp -c -o $(bld)/EmbeddingModel.o $(params)
 
-EmbeddingModelDebug.o: $(src)/EmbeddingModel.cpp $(src)/EmbeddingModel.h $(src)/random.h $(src)/Triple.h
+EmbeddingModelDebug.o: $(src)/EmbeddingModel.cpp
 	g++ $(src)/EmbeddingModel.cpp -c -o $(bld)/EmbeddingModelDebug.o $(debugparams)
 
-SamplingModel.o: $(src)/random.h $(src)/Triple.h $(src)/SamplingModel.h $(src)/SamplingModel.cpp
+SamplingModel.o: $(src)/SamplingModel.cpp
 	g++ $(src)/SamplingModel.cpp -c -o $(bld)/SamplingModel.o $(params)
 
-SamplingModelDebug.o: $(src)/random.h $(src)/Triple.h $(src)/SamplingModel.h $(src)/SamplingModel.cpp
+SamplingModelDebug.o: $(src)/SamplingModel.cpp
 	g++ $(src)/SamplingModel.cpp -c -o $(bld)/SamplingModelDebug.o $(debugparams)
 
-TransE.o: $(src)/Triple.h $(src)/TransE.h $(src)/TransE.cpp
+TransE.o: $(src)/TransE.cpp
 	g++ $(src)/TransE.cpp -c -o $(bld)/TransE.o $(params)
 
-TransEDebug.o: $(src)/Triple.h $(src)/TransE.h $(src)/TransE.cpp
+TransEDebug.o: $(src)/TransE.cpp
 	g++ $(src)/TransE.cpp -c -o $(bld)/TransEDebug.o $(debugparams)
 
-unifSampling.o: $(src)/Triple.h $(src)/random.h $(src)/unifSampling.h $(src)/unifSampling.cpp
+TransH.o: $(src)/TransH.cpp
+	g++ $(src)/TransH.cpp -c -o $(bld)/TransH.o $(params)
+
+TransHDebug.o: $(src)/TransH.cpp
+	g++ $(src)/TransH.cpp -c -o $(bld)/TransHDebug.o $(debugparams)
+
+unifSampling.o: $(src)/unifSampling.cpp
 	g++ $(src)/unifSampling.cpp -c -o $(bld)/unifSampling.o $(params)
 
-unifSamplingDebug.o: $(src)/Triple.h $(src)/random.h $(src)/unifSampling.h $(src)/unifSampling.cpp
+unifSamplingDebug.o: $(src)/unifSampling.cpp
 	g++ $(src)/unifSampling.cpp -c -o $(bld)/unifSamplingDebug.o $(debugparams)
 
-bernSampling.o: $(src)/Triple.h $(src)/random.h $(src)/bernSampling.h $(src)/bernSampling.cpp
+bernSampling.o: $(src)/bernSampling.cpp
 	g++ $(src)/bernSampling.cpp -c -o $(bld)/bernSampling.o $(params)
 
-bernSamplingDebug.o: $(src)/Triple.h $(src)/random.h $(src)/bernSampling.h $(src)/bernSampling.cpp
+bernSamplingDebug.o: $(src)/bernSampling.cpp
 	g++ $(src)/bernSampling.cpp -c -o $(bld)/bernSamplingDebug.o $(debugparams)
 
-updateSampling.o: $(src)/Triple.h $(src)/random.h $(src)/updateSampling.h $(src)/updateSampling.cpp
+updateSampling.o: $(src)/updateSampling.cpp
 	g++ $(src)/updateSampling.cpp -c -o $(bld)/updateSampling.o $(params)
 
-updateSamplingDebug.o: $(src)/Triple.h $(src)/random.h $(src)/updateSampling.h $(src)/updateSampling.cpp
+updateSamplingDebug.o: $(src)/updateSampling.cpp
 	g++ $(src)/updateSampling.cpp -c -o $(bld)/updateSamplingDebug.o $(debugparams)
 
 .PHONY: clean

@@ -3,6 +3,7 @@
 #include "unifSampling.h"
 #include "updateSampling.h"
 #include "TransE.h"
+#include "TransH.h"
 
 #include <iostream>
 #include <cstring>
@@ -47,6 +48,9 @@ int main(int argc, char ** argv) {
     ds = new DataSet(dsname);
     if (emname == "TransE") {
         em = new TransE(*ds, dim1);
+    }
+    else if (emname == "TransH") {
+        em = new TransH(*ds, dim1);
     } else {
         exit(1);
     }

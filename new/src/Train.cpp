@@ -23,6 +23,7 @@ void Train::launch(unsigned nepoch, const std::string & runtest, unsigned output
     std::thread ** threads = new std::thread*[_threads];
     for (unsigned i = 0; i < nepoch; ++i) {
         result = 0;
+        _em->cache_store();
         for (unsigned j = 0; j < _threads; ++j)
             threads[j] = new std::thread(
                 [this, &result]() -> void {
@@ -37,6 +38,7 @@ void Train::launch(unsigned nepoch, const std::string & runtest, unsigned output
             );
         for (unsigned j = 0; j < _threads; ++j)
             threads[j]->join();
+        _em->cache_load();
         std::cout << "epoch " << std::setw(5) << i;
         std::cout << " : " << std::fixed << std::setw(10) << std::setprecision(3) << result << std::endl;
         if ((i + 1) % output == 0) {
