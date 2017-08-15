@@ -21,10 +21,11 @@ TransH::TransH(const DataSet & ds, unsigned dim,
 }
 
 float TransH::calc_sum(const Triple & t) const {
-    float ht = dot(t.r, t.h), tt = dot(t.r, t.t);
+    float ht = dot(_rp[t.r], _ed->second[t.h], _dim),
+          tt = dot(_rp[t.r], _ed->second[t.t], _dim);
     float result = 0;
     for (unsigned i = 0; i < _dim; ++i)
-        result += fabs(frhti(t, i));
+        result += fabs(frhti(t, ht, tt, i));
     return result;
 }
 
@@ -39,44 +40,25 @@ void TransH::norm(float * rv, float * rp, float rate) {
     strict_norm(rp);
 }
 
-float TransH::update(const std::pair<Triple, Triple> * samples, unsigned size,
-                     float rate, float margin) {
-    _last_rate = rate;
-    float posval, negval, res = 0;
-    float posx, negx, possumx, negsumx;
-    for (unsigned i = 0; i < size; ++i) {
-        const Triple & pos = samples[i].first, & neg = samples[i].second;
-        posval = calc_sum(pos);
-        negval = calc_sum(neg);
-        possumx = negsumx = 0;
-        if (posval + margin > negval) {
-            res += margin + posval - negval;
-            for (unsigned j = 0; j < _dim; ++j) {
-                if (frhti(pos, j) > 0)
-                    posx = rate;
-                else
-                    posx = -rate;
-                if (frhti(neg, j) > 0)
-                    negx = rate;
-                else
-                    negx = -rate;
-                possumx += posx * _rp[pos.r][j];
-                negsumx += negx * _rp[neg.r][j];
-                cvr(pos)[j] -= posx;
-                cvh(pos)[j] -= posx;
-                cvt(pos)[j] += posx;
-                _rp_cache[pos.r][j] += posx * (dot(pos.r, pos.h) - dot(pos.r, pos.t));
-                cvr(neg)[j] += negx;
-                cvr(neg)[j] += negx;
-                cvt(neg)[j] -= negx;
-                _rp_cache[neg.r][j] -= negx * (dot(neg.r, neg.h) - dot(neg.r, neg.t));
-            }
-            for (unsigned j = 0; j < _dim; ++j) {
-                _rp_cache[pos.r][j] += possumx * (vh(pos)[j] - vt(pos)[j]);
-                _rp_cache[neg.r][j] -= negsumx * (vh(neg)[j] - vt(neg)[j]);
-            }
-        }
-    }
+void TransH::update_core(const Triple & triple, short label, float rate) {
+    const float hdot = dot(_rp[triple.r], _ed->second[triple.h], _dim),
+                tdot = dot(_rp[triple.r], _ed->second[triple.t], _dim);
+    float x, sumx = 0;
+    for (int i = 0; i < _dim; i++) {
+		if (frhti(triple, hdot, tdot, i) > 0) {
+			x = label * rate;
+			sumx += _rp[triple.r][i];
+		} else {
+			x = -label * rate;
+			sumx -= _rp[triple.r][i];
+		}
+		cvr(triple)[i] -= x;
+		cvh(triple)[i] -= x;
+        cvt(triple)[i] += x;
+		_rp_cache[triple.r][i] += x * (hdot - tdot);
+	}
+	for (int i = 0; i < _dim; i++)
+		_rp_cache[triple.r][i] += label * rate * sumx * (vh(triple)[i] - vt(triple)[i]);
 }
 
 void TransH::output(const std::string & ext) const {

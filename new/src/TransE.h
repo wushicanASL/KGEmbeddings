@@ -15,6 +15,8 @@ private:
     inline float frht(const Triple & t, unsigned i) const {
         return vh(t)[i] + vr(t)[i] - vt(t)[i];
     }
+protected:
+    void update_core(const Triple & triple, short label, float rate);
 public:
     TransE(const DataSet & ds, unsigned dim,
             const EmbeddedData * ed = nullptr,
@@ -24,9 +26,6 @@ public:
         return "TransE";
     }
     float calc_sum(const Triple & t) const;
-    float update(const std::pair<Triple, Triple> * samples,
-                 unsigned size, float rate, float margin);
-    void output(const std::string & ext) const;
 };
 
 }

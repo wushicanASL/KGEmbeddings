@@ -18,49 +18,23 @@ float TransE::calc_sum(const Triple & t) const {
     return sum;
 }
 
-float TransE::update(const std::pair<Triple, Triple> * samples,
-                     unsigned size, float rate, float margin) {
-    float posval, negval;
-    float res = 0, x, y;
-    for (unsigned i = 0; i < size; ++i) {
-        const Triple & pos = samples[i].first, & neg = samples[i].second;
-        posval = calc_sum(pos);
-        negval = calc_sum(neg);
-        if (posval + margin > negval) {
-            res += margin + posval - negval;
-            if (_L1_flag)
-                for (unsigned j = 0; j < _dim; ++j) {
-                    if (frht(pos, j) < 0)
-                        x = 1 * rate;
-                    else
-                        x = -1 * rate;
-                    if (frht(neg, j) < 0)
-                        y = 1 * rate;
-                    else
-                        y = -1 * rate;
-                    cvh(pos)[j] += x;
-                    cvr(pos)[j] += x;
-                    cvt(pos)[j] -= x;
-                    cvh(neg)[j] -= y;
-                    cvr(neg)[j] -= y;
-                    cvt(neg)[j] += y;
-                }
+void TransE::update_core(const Triple & triple, short label, float rate) {
+    float x;
+    if (_L1_flag)
+        for (unsigned j = 0; j < _dim; ++j) {
+            if (frht(triple, j) < 0)
+                x = label * rate;
             else
-                for (unsigned j = 0; j < _dim; ++j) {
-                    x = -2 * rate * frht(pos, j);
-                    y = -2 * rate * frht(neg, j);
-                    cvh(pos)[j] += x;
-                    cvr(pos)[j] += x;
-                    cvt(pos)[j] -= x;
-                    cvh(neg)[j] -= y;
-                    cvr(neg)[j] -= y;
-                    cvt(neg)[j] += y;
-                }
+                x = -label * rate;
+            cvh(triple)[j] += x;
+            cvr(triple)[j] += x;
+            cvt(triple)[j] -= x;
         }
-    }
-    return res;
-}
-
-void TransE::output(const std::string & ext) const {
-    EmbeddingModel::output(ext);
+    else
+        for (unsigned j = 0; j < _dim; ++j) {
+            x = -2 * label * rate * frht(triple, j);
+            cvh(triple)[j] += x;
+            cvr(triple)[j] += x;
+            cvt(triple)[j] -= x;
+        }
 }

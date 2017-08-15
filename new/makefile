@@ -3,10 +3,10 @@ debugparams = -std=c++11 -g -pthread
 bld = build
 src = src
 
-EM = EmbeddingModel.o TransE.o TransH.o
-EMDebug = EmbeddingModelDebug.o TransEDebug.o TransHDebug.o
-EMFile = $(bld)/EmbeddingModel.o $(bld)/TransE.o $(bld)/TransH.o
-EMDebugFile = $(bld)/EmbeddingModelDebug.o $(bld)/TransEDebug.o $(bld)/TransHDebug.o
+EM = EmbeddingModel.o TransE.o TransH.o TransD.o
+EMDebug = EmbeddingModelDebug.o TransEDebug.o TransHDebug.o TransDDebug.o
+EMFile = $(bld)/EmbeddingModel.o $(bld)/TransE.o $(bld)/TransH.o $(bld)/TransD.o
+EMDebugFile = $(bld)/EmbeddingModelDebug.o $(bld)/TransEDebug.o $(bld)/TransHDebug.o $(bld)/TransDDebug.o
 SM = SamplingModel.o unifSampling.o bernSampling.o updateSampling.o
 SMDebug = SamplingModelDebug.o unifSamplingDebug.o bernSamplingDebug.o updateSamplingDebug.o
 SMFile = $(bld)/SamplingModel.o $(bld)/unifSampling.o $(bld)/bernSampling.o $(bld)/updateSampling.o
@@ -77,6 +77,12 @@ TransH.o: $(src)/TransH.cpp
 
 TransHDebug.o: $(src)/TransH.cpp
 	g++ $(src)/TransH.cpp -c -o $(bld)/TransHDebug.o $(debugparams)
+
+TransD.o: $(src)/TransD.cpp
+	g++ $(src)/TransD.cpp -c -o $(bld)/TransD.o $(params)
+
+TransDDebug.o: $(src)/TransD.cpp
+	g++ $(src)/TransD.cpp -c -o $(bld)/TransDDebug.o $(debugparams)
 
 unifSampling.o: $(src)/unifSampling.cpp
 	g++ $(src)/unifSampling.cpp -c -o $(bld)/unifSampling.o $(params)

@@ -4,6 +4,7 @@
 #include "updateSampling.h"
 #include "TransE.h"
 #include "TransH.h"
+#include "TransD.h"
 
 #include <iostream>
 #include <cstring>
@@ -31,7 +32,7 @@ int main(int argc, char ** argv) {
     EmbeddingModel * em;
     SamplingModel * sm;
     std::string dsname = "WN18", emname = "TransE", smname = "unif";
-    unsigned nepoch = 1000, dim1 = 50, dim2 = 50, threads = 4;
+    unsigned nepoch = 1000, dim = 50, threads = 4;
     float margin = 1, rate = 0.001;
 
     int i;
@@ -39,18 +40,20 @@ int main(int argc, char ** argv) {
     if ((i = ArgPos((char*)"-dataset", argc, argv)) > 0) dsname = argv[i + 1];
     if ((i = ArgPos((char*)"-sampling", argc, argv)) > 0) smname = argv[i + 1];
     if ((i = ArgPos((char*)"-nepoch", argc, argv)) > 0) nepoch = atoi(argv[i + 1]);
-    if ((i = ArgPos((char*)"-dim1", argc, argv)) > 0) dim1 = dim2 = atoi(argv[i + 1]);
-    if ((i = ArgPos((char*)"-dim2", argc, argv)) > 0) dim2 = atoi(argv[i + 1]);
+    if ((i = ArgPos((char*)"-dim1", argc, argv)) > 0) dim = atoi(argv[i + 1]);
     if ((i = ArgPos((char*)"-threads", argc, argv)) > 0) threads = atoi(argv[i + 1]);
     if ((i = ArgPos((char*)"-margin", argc, argv)) > 0) margin = atof(argv[i + 1]);
     if ((i = ArgPos((char*)"-rate", argc, argv)) > 0) rate = atof(argv[i + 1]);
 
     ds = new DataSet(dsname);
     if (emname == "TransE") {
-        em = new TransE(*ds, dim1);
+        em = new TransE(*ds, dim);
     }
     else if (emname == "TransH") {
-        em = new TransH(*ds, dim1);
+        em = new TransH(*ds, dim);
+    }
+    else if (emname == "TransD") {
+        em = new TransD(*ds, dim);
     } else {
         exit(1);
     }

@@ -178,3 +178,19 @@ EmbeddingModel::~EmbeddingModel() {
     delete _ed;
     delete _ed_cache;
 }
+
+float EmbeddingModel::update(const std::pair<Triple, Triple> * samples, unsigned size,
+                             float rate, float margin) {
+    float posval, negval, res = 0;
+    for (unsigned i = 0; i < size; ++i) {
+        posval = calc_sum(samples[i].first);
+        negval = calc_sum(samples[i].second);
+        if (posval + margin > negval) {
+            res += margin + posval - negval;
+            update_core(samples[i].first, 1, rate);
+            update_core(samples[i].second, -1, rate);
+        }
+    }
+    norm_all_cache();
+    return res;
+}

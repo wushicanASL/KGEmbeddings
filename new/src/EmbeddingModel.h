@@ -38,6 +38,12 @@ protected:
     inline static float sqr(float x) {
         return x * x;
     }
+    inline float dot(const float * x, const float * y, unsigned size) const {
+        float result = 0;
+        for (unsigned i = 0; i < size; ++i)
+            result += x[i] * y[i];
+        return result;
+    }
     inline float vec_len(float * v, unsigned size) {
         float x = 0;
         for (unsigned i = 0; i < _dim; ++i)
@@ -111,6 +117,7 @@ protected:
         for (unsigned i = 0; i < _entSize; ++i)
             norm(_ed->second[i]);
     }
+    virtual void update_core(const Triple & triple, short label, float rate) = 0;
 
     static void single_output(const std::string & filename,
                     unsigned num, unsigned dim, float ** mat);
@@ -133,7 +140,6 @@ public:
         matrixCopy(_ed_cache->second, _ed->second, _entSize, _dim);
     }
     virtual inline void cache_load() {
-        norm_all_cache();
         matrixCopy(_ed->first, _ed_cache->first, _relSize, _dim);
         matrixCopy(_ed->second, _ed_cache->second, _entSize, _dim);
     }
@@ -151,9 +157,10 @@ public:
 
     virtual float calc_sum(const Triple & t) const = 0;
     virtual float update(const std::pair<Triple, Triple> * samples, unsigned size,
-                            float rate, float margin) = 0;
+                            float rate, float margin);
     virtual void output(const std::string & ext) const;
 
     ~EmbeddingModel();
 };
+
 }
