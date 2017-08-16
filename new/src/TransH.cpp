@@ -21,18 +21,17 @@ TransH::TransH(const DataSet & ds, unsigned dim,
 }
 
 float TransH::calc_sum(const Triple & t) const {
-    float ht = dot(_rp[t.r], _ed->second[t.h], _dim),
-          tt = dot(_rp[t.r], _ed->second[t.t], _dim);
+    float hdot = dot(vrp(t), vh(t), _dim),
+          tdot = dot(vrp(t), vt(t), _dim);
     float result = 0;
     for (unsigned i = 0; i < _dim; ++i)
-        result += fabs(frhti(t, ht, tt, i));
+        result += fabs(frhti(t, hdot, tdot, i));
     return result;
 }
 
 void TransH::norm(float * rv, float * rp, float rate) {
     strict_norm(rp);
-    float x = dot(rv, rp, _dim);
-    if (x > 0.1)
+    if (dot(rv, rp, _dim) > 0.1)
         for (unsigned i = 0; i < _dim; ++i) {
             rv[i] -= rate * rp[i];
             rp[i] -= rate * rv[i];
@@ -41,24 +40,24 @@ void TransH::norm(float * rv, float * rp, float rate) {
 }
 
 void TransH::update_core(const Triple & triple, short label, float rate) {
-    const float hdot = dot(_rp[triple.r], _ed->second[triple.h], _dim),
-                tdot = dot(_rp[triple.r], _ed->second[triple.t], _dim);
+    const float hdot = dot(vrp(triple), vh(triple), _dim),
+                tdot = dot(vrp(triple), vt(triple), _dim);
     float x, sumx = 0;
     for (int i = 0; i < _dim; i++) {
-		if (frhti(triple, hdot, tdot, i) > 0) {
+		if (frhti(triple, hdot, tdot, i) < 0) {
 			x = label * rate;
-			sumx += _rp[triple.r][i];
+			sumx += vrp(triple)[i];
 		} else {
 			x = -label * rate;
-			sumx -= _rp[triple.r][i];
+			sumx -= vrp(triple)[i];
 		}
 		cvr(triple)[i] -= x;
 		cvh(triple)[i] -= x;
         cvt(triple)[i] += x;
-		_rp_cache[triple.r][i] += x * (hdot - tdot);
+		cvrp(triple)[i] += x * (hdot - tdot);
 	}
 	for (int i = 0; i < _dim; i++)
-		_rp_cache[triple.r][i] += label * rate * sumx * (vh(triple)[i] - vt(triple)[i]);
+		cvrp(triple)[i] += label * rate * sumx * (vh(triple)[i] - vt(triple)[i]);
 }
 
 void TransH::output(const std::string & ext) const {

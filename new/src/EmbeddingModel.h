@@ -34,6 +34,7 @@ protected:
     unsigned _dim, _relSize, _entSize;
     typedef std::pair<float **, float **> EmbeddedData; // first = relations, second = entities
     EmbeddedData * _ed, *_ed_cache;
+    const bool _use_cache;
 
     inline static float sqr(float x) {
         return x * x;
@@ -60,6 +61,7 @@ protected:
     inline void vecReset(float * vec, unsigned size) {
         for (unsigned i = 0; i < size; ++i)
             vec[i] = _rd.randn(0, 1.0 / _dim, -6 / sqrt(_dim), 6 / sqrt(_dim));
+        norm(vec);
     }
     inline void matrixReset(float ** matrix, unsigned n, unsigned m) {
         for (unsigned i = 0; i < n; ++i)
@@ -111,11 +113,23 @@ protected:
         return _ed_cache->second[t.t];
     }
 
-    virtual inline void norm_all_cache() {
-        for (unsigned i = 0; i < _relSize; ++i)
-            norm(_ed->first[i]);
-        for (unsigned i = 0; i < _entSize; ++i)
-            norm(_ed->second[i]);
+    virtual inline void norm_cache(const std::pair<Triple, Triple> & sample) {
+        norm(cvh(sample.first));
+        norm(cvr(sample.first));
+        norm(cvt(sample.first));
+        if (sample.first.h == sample.second.h)
+            norm(cvt(sample.second));
+        else
+            norm(cvh(sample.second));
+    }
+    virtual inline void norm(const std::pair<Triple, Triple> & sample) {
+        norm(vh(sample.first));
+        norm(vr(sample.first));
+        norm(vt(sample.first));
+        if (sample.first.h == sample.second.h)
+            norm(vt(sample.second));
+        else
+            norm(vh(sample.second));
     }
     virtual void update_core(const Triple & triple, short label, float rate) = 0;
 
@@ -124,7 +138,7 @@ protected:
 
 public:
     EmbeddingModel(const DataSet & ds, unsigned dim,
-                const EmbeddedData * ed = nullptr);
+                const EmbeddedData * ed = nullptr, bool _use_cache = true);
 
     inline void EDreset() {
         matrixReset(_ed->first, _relSize, _dim);
@@ -136,12 +150,16 @@ public:
     }
 
     virtual inline void cache_store() {
-        matrixCopy(_ed_cache->first, _ed->first, _relSize, _dim);
-        matrixCopy(_ed_cache->second, _ed->second, _entSize, _dim);
+        if (_use_cache) {
+            matrixCopy(_ed_cache->first, _ed->first, _relSize, _dim);
+            matrixCopy(_ed_cache->second, _ed->second, _entSize, _dim);
+        }
     }
     virtual inline void cache_load() {
-        matrixCopy(_ed->first, _ed_cache->first, _relSize, _dim);
-        matrixCopy(_ed->second, _ed_cache->second, _entSize, _dim);
+        if (_use_cache) {
+            matrixCopy(_ed->first, _ed_cache->first, _relSize, _dim);
+            matrixCopy(_ed->second, _ed_cache->second, _entSize, _dim);
+        }
     }
 
     void runClassificationTest(std::ostream & os) const;

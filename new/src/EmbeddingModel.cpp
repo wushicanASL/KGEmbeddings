@@ -12,21 +12,24 @@ using namespace sysukg;
 
 random_device & EmbeddingModel::_rd = random_device::getInstance();
 
-EmbeddingModel::EmbeddingModel(const DataSet & ds, unsigned dim, const EmbeddedData * ed) :
+EmbeddingModel::EmbeddingModel(const DataSet & ds, unsigned dim,
+        const EmbeddedData * ed, bool use_cache) : _use_cache(use_cache),
     _ds(ds), _dim(dim), _relSize(ds.relationNum()), _entSize(ds.entityNum()) {
     _ed = new EmbeddedData;
-    _ed_cache = new EmbeddedData;
     _ed->first = new float*[_relSize];
-    _ed_cache->first = new float*[_relSize];
-    for (unsigned i = 0; i < _relSize; ++i) {
+    for (unsigned i = 0; i < _relSize; ++i)
         _ed->first[i] = new float[dim];
-        _ed_cache->first[i] = new float[dim];
-    }
     _ed->second = new float*[_entSize];
-    _ed_cache->second = new float*[_entSize];
-    for (unsigned i = 0; i < _entSize; ++i) {
+    for (unsigned i = 0; i < _entSize; ++i)
         _ed->second[i] = new float[dim];
-        _ed_cache->second[i] = new float[dim];
+    if (_use_cache) {
+        _ed_cache = new EmbeddedData;
+        _ed_cache->first = new float*[_relSize];
+        for (unsigned i = 0; i < _relSize; ++i)
+            _ed_cache->first[i] = new float[dim];
+        _ed_cache->second = new float*[_entSize];
+        for (unsigned i = 0; i < _entSize; ++i)
+            _ed_cache->second[i] = new float[dim];
     }
 
     if (ed == nullptr)
@@ -163,20 +166,22 @@ void EmbeddingModel::runClassificationTest(std::ostream & os) const {
 }
 
 EmbeddingModel::~EmbeddingModel() {
-    for (unsigned i = 0; i < _relSize; ++i) {
+    for (unsigned i = 0; i < _relSize; ++i)
         delete[] _ed->first[i];
-        delete[] _ed_cache->first[i];
-    }
     delete[] _ed->first;
-    delete[] _ed_cache->first;
-    for (unsigned i = 0; i < _entSize; ++i) {
+    for (unsigned i = 0; i < _entSize; ++i)
         delete[] _ed->second[i];
-        delete[] _ed_cache->second[i];
-    }
     delete[] _ed->second;
-    delete[] _ed_cache->second;
     delete _ed;
-    delete _ed_cache;
+    if (_use_cache) {
+        for (unsigned i = 0; i < _entSize; ++i)
+            delete[] _ed_cache->second[i];
+        for (unsigned i = 0; i < _relSize; ++i)
+            delete[] _ed_cache->first[i];
+        delete[] _ed_cache->first;
+        delete[] _ed_cache->second;
+        delete _ed_cache;
+    }
 }
 
 float EmbeddingModel::update(const std::pair<Triple, Triple> * samples, unsigned size,
@@ -189,8 +194,11 @@ float EmbeddingModel::update(const std::pair<Triple, Triple> * samples, unsigned
             res += margin + posval - negval;
             update_core(samples[i].first, 1, rate);
             update_core(samples[i].second, -1, rate);
+            if (_use_cache)
+                norm_cache(samples[i]);
+            else
+                norm(samples[i]);
         }
     }
-    norm_all_cache();
     return res;
 }

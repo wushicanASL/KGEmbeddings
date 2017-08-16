@@ -7,12 +7,56 @@ private:
     float ** _rp, ** _ep, ** _rp_cache, ** _ep_cache,
           _last_rate;
     inline float frhti(const Triple & t, float hdot, float tdot, unsigned i) const {
-        return (vt(t)[i] + tdot * _rp[t.r][i]) - vr(t)[i] -
-               (vh(t)[i] + hdot * _rp[t.r][i]);
+        return (vt(t)[i] + tdot * vrp(t)[i]) - vr(t)[i] -
+               (vh(t)[i] + hdot * vrp(t)[i]);
     }
+    void norm(float * ev, float * epv, float * rpv, float rate);
 protected:
-    inline void norm_all_cache() {
-        // TODO
+    inline float * vrp(const Triple & t) {
+        return _rp[t.r];
+    }
+    inline float * cvrp(const Triple & t) {
+        return _rp_cache[t.r];
+    }
+    inline float * vhp(const Triple & t) {
+        return _ep[t.h];
+    }
+    inline float * cvhp(const Triple & t) {
+        return _ep_cache[t.h];
+    }
+    inline float * vtp(const Triple & t) {
+        return _ep[t.t];
+    }
+    inline float * cvtp(const Triple & t) {
+        return _ep_cache[t.t];
+    }
+    inline const float * vrp(const Triple & t) const {
+        return _rp[t.r];
+    }
+    inline const float * cvrp(const Triple & t) const {
+        return _rp_cache[t.r];
+    }
+    inline const float * vhp(const Triple & t) const {
+        return _ep[t.h];
+    }
+    inline const float * cvhp(const Triple & t) const {
+        return _ep_cache[t.h];
+    }
+    inline const float * vtp(const Triple & t) const {
+        return _ep[t.t];
+    }
+    inline const float * cvtp(const Triple & t) const {
+        return _ep_cache[t.t];
+    }
+
+    inline void norm_cache(const std::pair<Triple, Triple> & sample) {
+        EmbeddingModel::norm_cache(sample);
+        norm(cvh(sample.first), cvhp(sample.first), cvrp(sample.first), _last_rate);
+        norm(cvt(sample.first), cvtp(sample.first), cvrp(sample.first), _last_rate);
+        if (sample.first.h == sample.second.h)
+            norm(cvt(sample.second), cvtp(sample.second), cvrp(sample.second), _last_rate);
+        else
+            norm(cvh(sample.second), cvhp(sample.second), cvrp(sample.second), _last_rate);
     }
     void update_core(const Triple & triple, short label, float rate);
 public:

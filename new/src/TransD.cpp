@@ -4,6 +4,27 @@
 
 using namespace sysukg;
 
+void TransD::norm(float * ev, float * epv, float * rpv, float rate) {
+    const float edot = dot(ev, epv, _dim);
+    float x = 0, temp, sum = 0;
+    for (unsigned i = 0; i < _dim; ++i) {
+        temp = edot * rpv[i] + ev[i];
+        x += sqr(temp);
+        sum += 2 * temp * rpv[i];
+    }
+    if (x > 1) {
+        for (unsigned i = 0; i < _dim; ++i) {
+            temp = 2 * edot * rpv[i] + ev[i];
+            rpv[i] -= rate * temp * edot;
+            ev[i] -= rate * temp;
+        }
+        for (unsigned i = 0; i < _dim; ++i) {
+            ev[i] -= rate * sum * epv[i];
+            epv[i] -= rate * sum * ev[i];
+        }
+    }
+}
+
 TransD::TransD(const DataSet & ds, unsigned dim, const EmbeddedData * ed,
                const float ** rp, const float ** ep) :
     EmbeddingModel(ds, dim, ed), _last_rate(0) {
@@ -46,7 +67,7 @@ TransD::~TransD() {
 }
 
 float TransD::calc_sum(const Triple & t) const {
-    float hdot = dot(vh(t), _ep[t.h], _dim), tdot = dot(vt(t), _ep[t.t], _dim);
+    float hdot = dot(vh(t), vhp(t), _dim), tdot = dot(vt(t), vtp(t), _dim);
     float result = 0;
     for (unsigned i = 0; i < _dim; ++i)
         result += fabs(frhti(t, hdot, tdot, i));
@@ -54,25 +75,25 @@ float TransD::calc_sum(const Triple & t) const {
 }
 
 void TransD::update_core(const Triple & triple, short label, float rate) {
-    const float hdot = dot(vh(triple), _ep[triple.h], _dim),
-                tdot = dot(vt(triple), _ep[triple.t], _dim);
+    const float hdot = dot(vh(triple), vhp(triple), _dim),
+                tdot = dot(vt(triple), vtp(triple), _dim);
     float x, s = 0;
 	for (int i = 0; i < _dim; i++) {
 		if (frhti(triple, hdot, tdot, i) > 0)
 			x = label * rate;
 		else
 			x = -label * rate;
-		s += x * _rp[triple.r][i];
-		_rp_cache[triple.r][i] += x * (tdot - hdot);
+		s += x * vrp(triple)[i];
+		cvrp(triple)[i] += x * (tdot - hdot);
 		cvr(triple)[i] -= x;
         cvh(triple)[i] -= x;
         cvt(triple)[i] += x;
 	}
 	for (int i = 0; i < _dim; i++) {
-		cvh(triple)[i] -= s * _ep[triple.h][i];
-		_ep_cache[triple.h][i] -= s * vh(triple)[i];
-		cvt(triple)[i] += s * _ep[triple.t][i];
-		_ep_cache[triple.t][i] += s * vt(triple)[i];
+		cvh(triple)[i] -= s * vhp(triple)[i];
+		cvhp(triple)[i] -= s * vh(triple)[i];
+		cvt(triple)[i] += s * vtp(triple)[i];
+		cvtp(triple)[i] += s * vt(triple)[i];
 	}
 }
 
