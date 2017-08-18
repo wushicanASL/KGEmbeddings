@@ -10,11 +10,12 @@ void TransD::norm(float * ev, float * epv, float * rpv, float rate) {
     for (unsigned i = 0; i < _dim; ++i) {
         temp = edot * rpv[i] + ev[i];
         x += sqr(temp);
-        sum += 2 * temp * rpv[i];
+        sum += temp * rpv[i];
     }
     if (x > 1) {
+        sum *= 2;
         for (unsigned i = 0; i < _dim; ++i) {
-            temp = 2 * edot * rpv[i] + ev[i];
+            temp = 2 * (edot * rpv[i] + ev[i]);
             rpv[i] -= rate * temp * edot;
             ev[i] -= rate * temp;
         }
@@ -67,19 +68,24 @@ TransD::~TransD() {
 }
 
 float TransD::calc_sum(const Triple & t) const {
-    float hdot = dot(vh(t), vhp(t), _dim), tdot = dot(vt(t), vtp(t), _dim);
-    float result = 0;
-    for (unsigned i = 0; i < _dim; ++i)
-        result += fabs(frhti(t, hdot, tdot, i));
+    const float hdot = dot(vh(t), vhp(t), _dim), tdot = dot(vt(t), vtp(t), _dim);
+    float result = 0, tmph, tmpt;
+    for (unsigned i = 0; i < _dim; ++i) {
+        tmph = hdot * vrp(t)[i] + vh(t)[i];
+        tmpt = tdot * vrp(t)[i] + vt(t)[i];
+        result += fabs(tmph + vr(t)[i] - tmpt);
+    }
     return result;
 }
 
 void TransD::update_core(const Triple & triple, short label, float rate) {
     const float hdot = dot(vh(triple), vhp(triple), _dim),
                 tdot = dot(vt(triple), vtp(triple), _dim);
-    float x, s = 0;
+    float x, s = 0, tmph, tmpt;
 	for (int i = 0; i < _dim; i++) {
-		if (frhti(triple, hdot, tdot, i) > 0)
+        tmph = hdot * vrp(triple)[i] + vh(triple)[i];
+        tmpt = tdot * vrp(triple)[i] + vt(triple)[i];
+		if (tmpt - tmph - vr(triple)[i] < 0)
 			x = label * rate;
 		else
 			x = -label * rate;

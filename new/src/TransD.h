@@ -6,10 +6,6 @@ class TransD : public EmbeddingModel {
 private:
     float ** _rp, ** _ep, ** _rp_cache, ** _ep_cache,
           _last_rate;
-    inline float frhti(const Triple & t, float hdot, float tdot, unsigned i) const {
-        return (vt(t)[i] + tdot * vrp(t)[i]) - vr(t)[i] -
-               (vh(t)[i] + hdot * vrp(t)[i]);
-    }
     void norm(float * ev, float * epv, float * rpv, float rate);
 protected:
     inline float * vrp(const Triple & t) {
