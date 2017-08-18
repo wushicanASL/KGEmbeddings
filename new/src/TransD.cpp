@@ -26,19 +26,14 @@ void TransD::norm(float * ev, float * epv, float * rpv, float rate) {
     }
 }
 
-TransD::TransD(const DataSet & ds, unsigned dim, const EmbeddedData * ed,
-               const float ** rp, const float ** ep) :
-    EmbeddingModel(ds, dim, ed), _last_rate(0) {
+TransD::TransD(const DataSet & ds, unsigned dim, const std::string & ext) :
+    EmbeddingModel(ds, dim, ext, true), _last_rate(0) {
     _rp = new float*[_relSize];
     _rp_cache = new float*[_relSize];
     for (unsigned i = 0; i < _relSize; ++i) {
         _rp[i] = new float[dim];
         _rp_cache[i] = new float[dim];
     }
-    if (rp == nullptr)
-        matrixReset(_rp, _relSize, dim);
-    else
-        matrixCopy(_rp, rp, _relSize, dim);
 
     _ep = new float*[_entSize];
     _ep_cache = new float*[_entSize];
@@ -46,10 +41,13 @@ TransD::TransD(const DataSet & ds, unsigned dim, const EmbeddedData * ed,
         _ep[i] = new float[dim];
         _ep_cache[i] = new float[dim];
     }
-    if (ep == nullptr)
+    if (ext.empty()) {
+        matrixReset(_rp, _relSize, dim);
         matrixReset(_ep, _entSize, dim);
-    else
-        matrixCopy(_ep, ep, _entSize, dim);
+    } else {
+        readFromFile(_rp, "relproj2vec." + ext, _relSize, dim);
+        readFromFile(_ep, "entproj2vec." + ext, _entSize, dim);
+    }
 }
 
 TransD::~TransD() {
@@ -119,4 +117,16 @@ void TransD::output(const std::string & ext) const {
         threads[i]->join();
     for (char i = 0; i < filenum; ++i)
         delete threads[i];
+}
+
+void TransD::resetNegTriples() {
+    for (unsigned i = 0; i < _ds.updateSize(); ++i)
+        if (!(_ds.updateset() + i)->f) {
+            vecReset(vh(*(_ds.updateset() + i)), _dim);
+            vecReset(vr(*(_ds.updateset() + i)), _dim);
+            vecReset(vt(*(_ds.updateset() + i)), _dim);
+            vecReset(vhp(*(_ds.updateset() + i)), _dim);
+            vecReset(vrp(*(_ds.updateset() + i)), _dim);
+            vecReset(vtp(*(_ds.updateset() + i)), _dim);
+        }
 }

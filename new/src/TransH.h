@@ -41,8 +41,8 @@ protected:
     }
     void update_core(const Triple & triple, short label, float rate);
 public:
-    TransH(const DataSet & ds, unsigned dim,
-           const EmbeddedData * ed = nullptr, const float ** rp = nullptr);
+    TransH(const DataSet & ds, unsigned dim, const std::string & ext = "");
+    void resetNegTriples();
     inline void cache_store() {
         EmbeddingModel::cache_store();
         matrixCopy(_rp_cache, _rp, _relSize, _dim);

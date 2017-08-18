@@ -39,42 +39,44 @@ protected:
     inline static float sqr(float x) {
         return x * x;
     }
-    inline float dot(const float * x, const float * y, unsigned size) const {
+    static inline float dot(const float * x, const float * y, unsigned size) {
         float result = 0;
         for (unsigned i = 0; i < size; ++i)
             result += x[i] * y[i];
         return result;
     }
-    inline float vec_len(float * v, unsigned size) {
+    static inline float vec_len(float * v, unsigned size) {
         float x = 0;
-        for (unsigned i = 0; i < _dim; ++i)
+        for (unsigned i = 0; i < size; ++i)
             x += sqr(v[i]);
         x = sqrt(x);
         return x;
     }
-    inline void norm(float * v) {
-        float x = vec_len(v, _dim);
+    static inline void norm(float * v, unsigned size) {
+        float x = vec_len(v, size);
         if (x > 1)
-            for (unsigned i = 0; i < _dim; ++i)
+            for (unsigned i = 0; i < size; ++i)
                 v[i] /= x;
     }
-    inline void vecReset(float * vec, unsigned size) {
+    static inline void vecReset(float * vec, unsigned size) {
         for (unsigned i = 0; i < size; ++i)
-            vec[i] = _rd.randn(0, 1.0 / _dim, -6 / sqrt(_dim), 6 / sqrt(_dim));
-        norm(vec);
+            vec[i] = _rd.randn(0, 1.0 / size, -6 / sqrt(size), 6 / sqrt(size));
+        norm(vec, size);
     }
-    inline void matrixReset(float ** matrix, unsigned n, unsigned m) {
+    static inline void matrixReset(float ** matrix, unsigned n, unsigned m) {
         for (unsigned i = 0; i < n; ++i)
             vecReset(matrix[i], m);
     }
-    inline void matrixCopy(float ** target, float ** source, unsigned n, unsigned m) {
+    static inline void matrixCopy(float ** target, float ** source, unsigned n, unsigned m) {
         for (unsigned i = 0; i < n; ++i)
             memcpy(target[i], source[i], m * sizeof(float));
     }
-    inline void matrixCopy(float ** target, const float ** source, unsigned n, unsigned m) {
+    static inline void matrixCopy(float ** target, const float ** source, unsigned n, unsigned m) {
         for (unsigned i = 0; i < n; ++i)
             memcpy(target[i], source[i], m * sizeof(float));
     }
+
+    static void readFromFile(float ** target, const std::string & filename, unsigned n, unsigned m);
 
     inline const float * vh(const Triple & t) const {
         return _ed->second[t.h];
@@ -114,22 +116,22 @@ protected:
     }
 
     virtual inline void norm_cache(const std::pair<Triple, Triple> & sample) {
-        norm(cvh(sample.first));
-        norm(cvr(sample.first));
-        norm(cvt(sample.first));
+        norm(cvh(sample.first), _dim);
+        norm(cvr(sample.first), _dim);
+        norm(cvt(sample.first), _dim);
         if (sample.first.h == sample.second.h)
-            norm(cvt(sample.second));
+            norm(cvt(sample.second), _dim);
         else
-            norm(cvh(sample.second));
+            norm(cvh(sample.second), _dim);
     }
     virtual inline void norm(const std::pair<Triple, Triple> & sample) {
-        norm(vh(sample.first));
-        norm(vr(sample.first));
-        norm(vt(sample.first));
+        norm(vh(sample.first), _dim);
+        norm(vr(sample.first), _dim);
+        norm(vt(sample.first), _dim);
         if (sample.first.h == sample.second.h)
-            norm(vt(sample.second));
+            norm(vt(sample.second), _dim);
         else
-            norm(vh(sample.second));
+            norm(vh(sample.second), _dim);
     }
     virtual void update_core(const Triple & triple, short label, float rate) = 0;
 
@@ -138,16 +140,14 @@ protected:
 
 public:
     EmbeddingModel(const DataSet & ds, unsigned dim,
-                const EmbeddedData * ed = nullptr, bool _use_cache = true);
+                const std::string & ext = "", bool _use_cache = true);
 
     inline void EDreset() {
         matrixReset(_ed->first, _relSize, _dim);
         matrixReset(_ed->second, _entSize, _dim);
     }
-    inline void EDcopy(const EmbeddedData * ed) {
-        matrixCopy(_ed->first, ed->first, _relSize, _dim);
-        matrixCopy(_ed->second, ed->second, _entSize, _dim);
-    }
+
+    virtual void resetNegTriples();
 
     virtual inline void cache_store() {
         if (_use_cache) {
@@ -163,7 +163,7 @@ public:
     }
 
     void runClassificationTest(std::ostream & os) const;
-    void runLinkPrediction(std::ostream & os, unsigned threadnum = 4) const;
+    void runLinkPredictionTest(std::ostream & os, unsigned threadnum = 4) const;
 
     inline unsigned dim() const {
         return _dim;

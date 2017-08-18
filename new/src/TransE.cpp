@@ -2,8 +2,8 @@
 
 using namespace sysukg;
 
-TransE::TransE(const DataSet & ds, unsigned dim, const EmbeddedData * ed) :
-    EmbeddingModel(ds, dim, ed, false) {}
+TransE::TransE(const DataSet & ds, unsigned dim, const std::string & ext) :
+    EmbeddingModel(ds, dim, ext, false) {}
 
 float TransE::calc_sum(const Triple & t) const {
     float sum = 0;

@@ -46,7 +46,7 @@ public:
         return _margin;
     }
 
-    void launch(unsigned nepoch, const std::string & runtest = std::string(), unsigned output = 0);
+    void launch(const std::string & mode, unsigned nepoch, unsigned output, bool silence);
 };
 
 }

@@ -56,8 +56,7 @@ protected:
     }
     void update_core(const Triple & triple, short label, float rate);
 public:
-    TransD(const DataSet & ds, unsigned dim, const EmbeddedData * ed = nullptr,
-           const float ** rp = nullptr, const float ** ep = nullptr);
+    TransD(const DataSet & ds, unsigned dim, const std::string & ext = "");
     std::string methodName() const {
         return "TransD";
     }
@@ -79,6 +78,7 @@ public:
         EmbeddingModel::update(samples, size, rate, margin);
     }
     void output(const std::string & ext) const;
+    void resetNegTriples();
     ~TransD();
 };
 

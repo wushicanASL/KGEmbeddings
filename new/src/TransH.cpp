@@ -5,19 +5,18 @@
 
 using namespace sysukg;
 
-TransH::TransH(const DataSet & ds, unsigned dim,
-               const EmbeddedData * ed, const float ** rp) :
-    EmbeddingModel(ds, dim, ed), _last_rate(0) {
+TransH::TransH(const DataSet & ds, unsigned dim, const std::string & ext) :
+    EmbeddingModel(ds, dim, ext, true), _last_rate(0) {
     _rp = new float*[_relSize];
     _rp_cache = new float*[_relSize];
     for (unsigned i = 0; i < _relSize; ++i) {
         _rp[i] = new float[dim];
         _rp_cache[i] = new float[dim];
     }
-    if (rp == nullptr)
+    if (ext.empty())
         matrixReset(_rp, _relSize, dim);
     else
-        matrixCopy(_rp, rp, _relSize, dim);
+        readFromFile(_rp, "relproj2vec." + ext, _relSize, _dim);
 }
 
 float TransH::calc_sum(const Triple & t) const {
@@ -83,4 +82,14 @@ TransH::~TransH() {
     }
     delete[] _rp;
     delete[] _rp_cache;
+}
+
+void TransH::resetNegTriples() {
+    for (unsigned i = 0; i < _ds.updateSize(); ++i)
+        if (!(_ds.updateset() + i)->f) {
+            vecReset(vh(*(_ds.updateset() + i)), _dim);
+            vecReset(vr(*(_ds.updateset() + i)), _dim);
+            vecReset(vt(*(_ds.updateset() + i)), _dim);
+            vecReset(vrp(*(_ds.updateset() + i)), _dim);
+        }
 }

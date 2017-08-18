@@ -17,7 +17,7 @@ protected:
     void update_core(const Triple & triple, short label, float rate);
 public:
     TransE(const DataSet & ds, unsigned dim,
-            const EmbeddedData * ed = nullptr);
+            const std::string & ext = "");
 
     inline std::string methodName() const {
         return "TransE";

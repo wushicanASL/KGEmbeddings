@@ -56,7 +56,7 @@ int main(int argc, char ** argv) {
     if ((i = ArgPos((char*)"-ext", argc, argv)) > 0) ext = argv[i + 1];
     if ((i = ArgPos((char*)"-mode", argc, argv)) > 0) mode = argv[i + 1];
     if ((i = ArgPos((char*)"-output", argc, argv)) > 0) output = atoi(argv[i + 1]);
-    if ((i = ArgPos((char*)"-silence", argc, argv)) > 0) silece = true;
+    if ((i = ArgPos((char*)"-silence", argc, argv)) > 0) silence = true;
 
     ds = new DataSet(dsname);
     if (emname == "TransE") {
@@ -79,11 +79,7 @@ int main(int argc, char ** argv) {
     } else {
         exit(1);
     }
-    Train train(em, sm, rate, margin, threads, mode);
-    train.launch(nepoch);
-    if (dsname == "FB15k" || dsname == "WN18")
-        em->runLinkPrediction(std::cout);
-    else if (dsname == "WN11" || dsname == "FB13")
-        em->runClassificationTest(std::cout);
+    Train train(em, sm, rate, margin, threads);
+    train.launch(mode, nepoch, output, silence);
     return 0;
 }

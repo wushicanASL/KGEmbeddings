@@ -13,7 +13,7 @@ using namespace sysukg;
 random_device & EmbeddingModel::_rd = random_device::getInstance();
 
 EmbeddingModel::EmbeddingModel(const DataSet & ds, unsigned dim,
-        const EmbeddedData * ed, bool use_cache) : _use_cache(use_cache),
+        const std::string & ext, bool use_cache) : _use_cache(use_cache),
     _ds(ds), _dim(dim), _relSize(ds.relationNum()), _entSize(ds.entityNum()) {
     _ed = new EmbeddedData;
     _ed->first = new float*[_relSize];
@@ -32,10 +32,21 @@ EmbeddingModel::EmbeddingModel(const DataSet & ds, unsigned dim,
             _ed_cache->second[i] = new float[dim];
     }
 
-    if (ed == nullptr)
+    if (ext.empty()) {
         EDreset();
-    else
-        EDcopy(ed);
+    } else {
+        readFromFile(_ed->first, "relation2vec." + ext, _relSize, _dim);
+        readFromFile(_ed->second, "entity2vec." + ext, _entSize, _dim);
+    }
+}
+
+void EmbeddingModel::readFromFile(float ** target, const std::string & filename,
+        unsigned n, unsigned m) {
+    std::ifstream fin(filename);
+    for (unsigned i = 0; i < n; ++i)
+        for (unsigned j = 0; j < m; ++j)
+            fin >> target[i][j];
+    fin.close();
 }
 
 
@@ -65,7 +76,7 @@ void EmbeddingModel::output(const std::string & ext) const {
         delete threads[i];
 }
 
-void EmbeddingModel::runLinkPrediction(std::ostream & os, unsigned threadnum) const {
+void EmbeddingModel::runLinkPredictionTest(std::ostream & os, unsigned threadnum) const {
     std::atomic<unsigned> hrsum, trsum, hrhit, trhit,
                           hfsum, tfsum, hfhit, tfhit;
     std::atomic<unsigned> testnum;
@@ -201,4 +212,13 @@ float EmbeddingModel::update(const std::pair<Triple, Triple> * samples, unsigned
         }
     }
     return res;
+}
+
+void EmbeddingModel::resetNegTriples() {
+    for (unsigned i = 0; i < _ds.updateSize(); ++i)
+        if (!(_ds.updateset() + i)->f) {
+            vecReset(vh(*(_ds.updateset() + i)), _dim);
+            vecReset(vr(*(_ds.updateset() + i)), _dim);
+            vecReset(vt(*(_ds.updateset() + i)), _dim);
+        }
 }
