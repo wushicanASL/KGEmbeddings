@@ -22,7 +22,7 @@ protected:
     virtual Triple getPosSamp() const = 0;
     virtual Triple getNegSamp(const Triple & posSamp) const = 0;
 public:
-    explicit SamplingModel(const DataSet & ds, bool update = false);
+    explicit SamplingModel(const DataSet & ds, bool with_update_set = false);
 
     virtual void sample(std::pair<Triple, Triple> * target, unsigned num = 1) const;
 

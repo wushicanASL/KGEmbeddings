@@ -71,11 +71,11 @@ int main(int argc, char ** argv) {
         exit(1);
     }
     if (smname == "unif") {
-        sm = new unifSampling(*ds);
+        sm = new unifSampling(*ds, mode == "update");
     } else if (smname == "bern") {
-        sm = new bernSampling(*ds);
+        sm = new bernSampling(*ds, mode == "update");
     } else if (smname == "update") {
-        sm = new updateSampling(*ds);
+        sm = new updateSampling(*ds, mode == "update");
     } else {
         exit(1);
     }

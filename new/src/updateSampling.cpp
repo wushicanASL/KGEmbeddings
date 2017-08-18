@@ -31,8 +31,8 @@ void updateSampling::spfa(float * distance, unsigned size, node ** graph,
     }
 }
 
-updateSampling::updateSampling(const DataSet & ds) :
-        bernSampling(ds, true), _relNum(ds.relationNum()) {
+updateSampling::updateSampling(const DataSet & ds, bool with_update_set) :
+        bernSampling(ds, with_update_set), _relNum(ds.relationNum()) {
     unsigned ** eGraph = new unsigned*[_entNum],
              ** rGraph = new unsigned*[_relNum];
     for (unsigned i = 0; i < _entNum; ++i) {
@@ -79,35 +79,39 @@ updateSampling::updateSampling(const DataSet & ds) :
         delete[] eGraph[i];
     }
 
-    const Triple * _updateset = ds.updateset();
-    const unsigned _updatesize = ds.updateSize();
-    std::set<unsigned> ueset, urset;
-    for (unsigned i = 0; i < _updatesize; ++i) {
-        ueset.insert(_updateset[i].h);
-        urset.insert(_updateset[i].r);
-        ueset.insert(_updateset[i].t);
-    }
-    _ew = new float[_entNum],
-    _rw = new float[_relNum];
-    spfa(_ew, _entNum, feGraph, ueset);
-    spfa(_rw, _relNum, frGraph, urset);
-    for (unsigned i = 0; i < _entNum; ++i)
-        _ew[i] = elementWeight(_ew[i]);
-    for (unsigned i = 0; i < _relNum; ++i)
-        _rw[i] = elementWeight(_rw[i]);
-    norm(_ew, _entNum);
-    norm(_rw, _relNum);
-
-    for (unsigned i = 0; i < _entNum; ++i)
-        delete[] feGraph[i];
-    delete[] feGraph;
-    for (unsigned i = 0; i < _relNum; ++i)
-        delete[] frGraph[i];
-    delete[] frGraph;
-
     _pool_weight = new float[_size];
-    for (unsigned i = 0; i < _size; ++i) {
-        _pool_weight[i] = triple_weight(_pool[i].t);
+    if (with_update_set) {
+        const Triple * _updateset = ds.updateset();
+        const unsigned _updatesize = ds.updateSize();
+        std::set<unsigned> ueset, urset;
+        for (unsigned i = 0; i < _updatesize; ++i) {
+            ueset.insert(_updateset[i].h);
+            urset.insert(_updateset[i].r);
+            ueset.insert(_updateset[i].t);
+        }
+        _ew = new float[_entNum],
+        _rw = new float[_relNum];
+        spfa(_ew, _entNum, feGraph, ueset);
+        spfa(_rw, _relNum, frGraph, urset);
+        for (unsigned i = 0; i < _entNum; ++i)
+            _ew[i] = elementWeight(_ew[i]);
+        for (unsigned i = 0; i < _relNum; ++i)
+            _rw[i] = elementWeight(_rw[i]);
+        norm(_ew, _entNum);
+        norm(_rw, _relNum); 
+
+        for (unsigned i = 0; i < _entNum; ++i)
+            delete[] feGraph[i];
+        delete[] feGraph;
+        for (unsigned i = 0; i < _relNum; ++i)
+            delete[] frGraph[i];
+        delete[] frGraph;
+
+        for (unsigned i = 0; i < _size; ++i) {
+            _pool_weight[i] = triple_weight(_pool[i].t);
+        }
+    } else {
+        memset(_pool_weight, static_cast<float>(1), _size * sizeof(float));
     }
     norm(_pool_weight, _size);
 

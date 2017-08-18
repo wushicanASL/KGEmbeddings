@@ -57,7 +57,7 @@ protected:
     }
 
 public:
-    explicit updateSampling(const DataSet & ds);
+    explicit updateSampling(const DataSet & ds, bool with_update_set = true);
     void output(std::ostream & os) const;
     ~updateSampling();
 };
