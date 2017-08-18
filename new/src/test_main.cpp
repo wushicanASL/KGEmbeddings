@@ -70,12 +70,13 @@ int main(int argc, char ** argv) {
     } else {
         exit(1);
     }
+    bool with_update_set = (mode == "update" || mode == "retrain");
     if (smname == "unif") {
-        sm = new unifSampling(*ds, mode == "update");
+        sm = new unifSampling(*ds, with_update_set);
     } else if (smname == "bern") {
-        sm = new bernSampling(*ds, mode == "update");
+        sm = new bernSampling(*ds, with_update_set);
     } else if (smname == "update") {
-        sm = new updateSampling(*ds, mode == "update");
+        sm = new updateSampling(*ds, with_update_set);
     } else {
         exit(1);
     }
