@@ -36,8 +36,13 @@ int main(int argc, char ** argv) {
                 smname = "unif",    // {unif, bern, update}
                 ext = "",
                 mode = "retrain"; // {testonly, retrain, basetrain, update}
-    unsigned nepoch = 1000, dim = 50, threads = 4;
-    float margin = 1, rate = 0.001;
+    unsigned nepoch = 1000,
+             dim = 50,
+             threads = 4,
+             output = 0;
+    float margin = 1,
+          rate = 0.001;
+    bool silence = false;
 
     int i;
     if ((i = ArgPos((char*)"-embedding", argc, argv)) > 0) emname = argv[i + 1];
@@ -50,6 +55,8 @@ int main(int argc, char ** argv) {
     if ((i = ArgPos((char*)"-rate", argc, argv)) > 0) rate = atof(argv[i + 1]);
     if ((i = ArgPos((char*)"-ext", argc, argv)) > 0) ext = argv[i + 1];
     if ((i = ArgPos((char*)"-mode", argc, argv)) > 0) mode = argv[i + 1];
+    if ((i = ArgPos((char*)"-output", argc, argv)) > 0) output = atoi(argv[i + 1]);
+    if ((i = ArgPos((char*)"-silence", argc, argv)) > 0) silece = true;
 
     ds = new DataSet(dsname);
     if (emname == "TransE") {
