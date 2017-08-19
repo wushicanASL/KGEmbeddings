@@ -8,7 +8,7 @@ h_list = []
 r_list = []
 t_list = []
 
-Rbox_data = open('./FB15k.rbox')
+Rbox_data = open('./FB40k.rbox')
 Rbox_list = []
 
 for contend in Rbox_data:
@@ -31,7 +31,7 @@ for contend in Rbox_data:
 
 Rbox_data.close()
 
-set_owl = open('./FB15k.owl','w')
+set_owl = open('./FB40k.owl','w')
 #n = len(h_lsit)
 
 set_owl.write('<?xml version="1.0"?>'+'\n')
@@ -70,14 +70,15 @@ for e in range(n):
 		else:
 			set_owl.write('\t'+'\t'+'<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#'+h_list[e]+'"/>'+'\n')
 	else:
-		if (h_list[e] == 'Disjoint'):
-			set_owl.write('\t'+'\t'+'<owl:property'+h_list[e]+'With rdf:resource="http://example.com/owlapi/families#'+t_list[e]+'"/>'+'\n')
-		if (h_list[e] == 'Subproperty'):
-			set_owl.write('\t'+'\t'+'<owl:property'+h_list[e]+'Of rdf:resource="http://example.com/owlapi/families#'+t_list[e]+'"/>'+'\n')
-		if (h_list[e] == 'Functional'):
-			set_owl.write('\t'+'\t'+'<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#'+h_list[e]+'"/>'+'\n')
-		if (h_list[e] == 'Inverse Functional'):
-			set_owl.write('\t'+'\t'+'<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#'+h_list[e]+'"/>'+'\n')
+		if flag == 1:
+			if (h_list[e] == 'Disjoint'):
+				set_owl.write('\t'+'\t'+'<owl:property'+h_list[e]+'With rdf:resource="http://example.com/owlapi/families#'+t_list[e]+'"/>'+'\n')
+			if (h_list[e] == 'Subproperty'):
+				set_owl.write('\t'+'\t'+'<owl:property'+h_list[e]+'Of rdf:resource="http://example.com/owlapi/families#'+t_list[e]+'"/>'+'\n')
+			if (h_list[e] == 'Functional'):
+				set_owl.write('\t'+'\t'+'<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#'+h_list[e]+'"/>'+'\n')
+			if (h_list[e] == 'Inverse Functional'):
+				set_owl.write('\t'+'\t'+'<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#'+h_list[e]+'"/>'+'\n')
 	if (needWrite == 1 and flag == 1):
 		set_owl.write('\t'+'</owl:ObjectProperty>'+'\n'+'\n'+'\n'+'\n')
 		needWrite = 0
