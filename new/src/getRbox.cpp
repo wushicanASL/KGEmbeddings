@@ -19,37 +19,37 @@ const strset AvailableDataSets = {
 };
 
 inline void outputSymm(std::ostream & os, const std::string & r) {
-    os << "symm\t" << r << std::endl;
+    os << "Symmetric\t" << r << std::endl;
 }
 inline void outputTran(std::ostream & os, const std::string & r) {
-    os << "tran\t" << r << std::endl;
+    os << "Transitive\t" << r << std::endl;
 }
 inline void outputRefl(std::ostream & os, const std::string & r) {
-    os << "refl\t" << r << std::endl;
+    os << "Reflexive\t" << r << std::endl;
 }
 inline void outputAsym(std::ostream & os, const std::string & r) {
-    os << "asym\t" << r << std::endl;
+    os << "Asymmetric\t" << r << std::endl;
 }
 inline void outputIrre(std::ostream & os, const std::string & r) {
-    os << "irre\t" << r << std::endl;
+    os << "Irreflexive\t" << r << std::endl;
 }
 inline void outputFunc(std::ostream & os, const std::string & r) {
-    os << "func\t" << r << std::endl;
+    os << "Functional\t" << r << std::endl;
 }
 inline void outputIfun(std::ostream & os, const std::string & r) {
-    os << "ifun\t" << r << std::endl;
+    os << "Inverse functional\t" << r << std::endl;
 }
 inline void outputInve(std::ostream & os, const std::string & r, const std::string & s) {
-    os << "inve\t" << r << '\t' << s << std::endl;
+    os << "Inverse\t" << r << '\t' << s << std::endl;
 }
 inline void outputDisj(std::ostream & os, const std::string & r, const std::string & s) {
-    os << "disj\t" << r << '\t' << s << std::endl;
+    os << "Disjoint\t" << r << '\t' << s << std::endl;
 }
 inline void outputSubr(std::ostream & os, const std::string & r, const std::string & s) {
-    os << "subr\t" << r << '\t' << s << std::endl;
+    os << "Subproperty\t" << r << '\t' << s << std::endl;
 }
 inline void outputSubc(std::ostream & os, const std::string & r, const std::string & s, const std::string & t) {
-    os << "subc\t" << r << '\t' << s << '\t' << t << std::endl;
+    os << "Subproperty of Chain\t" << r << '\t' << s << '\t' << t << std::endl;
 }
 
 int main(int argc, char *argv[]) {
