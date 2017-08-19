@@ -20,8 +20,8 @@ for contend in Rbox_data:
 	if (con_list[0]=='Asymmetric') or (con_list[0]=='Irreflexive') or(con_list[0]=='Symmetric')\
 	or(con_list[0]=='Transitive')or(con_list[0]=='Functional')or(con_list[0]=='Inverse Functional')or(con_list[0]=='Reflexive'):
 	#	flag = 'True'
-		h_list.append(con_list[0])
-		r_list.append(con_list[1])
+		h_list.append(con_list[0]+'Property')
+		r_list.append(con_list[1]+'Property')
 		t_list.append(1)
 	else:
 		h_list.append(con_list[0])
@@ -78,7 +78,7 @@ for e in range(n):
 			set_owl.write('\t'+'\t'+'<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#'+h_list[e]+'"/>'+'\n')
 		if (h_list[e] == 'Inverse Functional'):
 			set_owl.write('\t'+'\t'+'<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#'+h_list[e]+'"/>'+'\n')
-	if (needWrite == 1):
+	if (needWrite == 1 and flag == 1):
 		set_owl.write('\t'+'</owl:ObjectProperty>'+'\n'+'\n'+'\n'+'\n')
 		needWrite = 0
 		flag = 0
