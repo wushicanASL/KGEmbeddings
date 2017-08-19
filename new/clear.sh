@@ -1,1 +1,1 @@
-rm relation2vec.* entity2vec.* A.* classification.* linkprediction.* log
+rm relation2vec.* entity2vec.* relproj2vec.* classification.* linkprediction.* log entproj2vec.*
