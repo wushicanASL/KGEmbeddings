@@ -37,7 +37,7 @@ inline void outputFunc(std::ostream & os, const std::string & r) {
     os << "Functional\t" << r << std::endl;
 }
 inline void outputIfun(std::ostream & os, const std::string & r) {
-    os << "Inverse functional\t" << r << std::endl;
+    os << "Inverse Functional\t" << r << std::endl;
 }
 inline void outputInve(std::ostream & os, const std::string & r, const std::string & s) {
     os << "Inverse\t" << r << '\t' << s << std::endl;
