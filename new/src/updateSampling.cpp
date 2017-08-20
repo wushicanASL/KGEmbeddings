@@ -102,7 +102,7 @@ updateSampling::updateSampling(const DataSet & ds, bool with_update_set) :
         for (unsigned i = 0; i < _relNum; ++i)
             _rw[i] = elementWeight(_rw[i]);
         float eavg = avg(_ew, _entNum),
-              ravg = avg(_rw, _entNum);
+              ravg = avg(_rw, _relNum);
         for (unsigned i = 0; i < _relNum; ++i)
             _rw[i] *= (eavg / ravg);
 
