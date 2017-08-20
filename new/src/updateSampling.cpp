@@ -29,6 +29,7 @@ void updateSampling::spfa(float * distance, unsigned size, node ** graph,
         inque[que.front()] = false;
         que.pop();
     }
+    delete[] inque;
 }
 
 updateSampling::updateSampling(const DataSet & ds, bool with_update_set) :
@@ -76,8 +77,9 @@ updateSampling::updateSampling(const DataSet & ds, bool with_update_set) :
         for (unsigned j = i + 1; j < _relNum; ++j)
             if (rGraph[i][j] && i != j)
                 undirected_insert(frGraph, i, j, edge_weight(rGraph[i][j]));
-        delete[] eGraph[i];
+        delete[] rGraph[i];
     }
+    delete[] rGraph;
 
     _pool_weight = new float[_size];
     if (with_update_set) {
