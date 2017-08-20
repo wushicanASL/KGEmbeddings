@@ -4,11 +4,11 @@
 #include <cmath>
 #include <ostream>
 
-#include "bernSampling.h"
+#include "unifSampling.h"
 
 namespace sysukg {
 
-class updateSampling : public bernSampling {
+class updateSampling : public unifSampling {
 private:
     typedef double floatType;
 

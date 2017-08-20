@@ -173,7 +173,7 @@ void updateSampling::output(std::ostream & os) const {
            << ' ' << _pool_weight[i] << std::endl;
 }
 
-floatType updateSampling::avg(const floatType * a, unsigned size) {
+updateSampling::floatType updateSampling::avg(const floatType * a, unsigned size) {
     floatType sum = 0;
     for (unsigned i = 0; i < size; ++i)
         sum += a[i];
