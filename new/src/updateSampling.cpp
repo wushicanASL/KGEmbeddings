@@ -9,9 +9,11 @@ using namespace sysukg;
 
 void updateSampling::spfa(float * distance, unsigned size, node ** graph,
         std::set<unsigned> sources) {
-    memset(distance, INF_DISTANCE, size * sizeof(float));
     bool * inque = new bool[size];
-    memset(inque, false, size * sizeof(bool));
+    for (unsigned i = 0; i < size; ++i) {
+        distance[i] = INF_DISTANCE;
+        inque[i] = false;
+    }
     std::queue<unsigned> que;
     for (auto & item : sources) {
         que.push(item);
