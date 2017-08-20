@@ -180,7 +180,7 @@ void updateSampling::output(std::ostream & os) const {
 
 float updateSampling::avg(const float * a, unsigned size) {
     float sum = 0;
-    for (unsigned i = 0; i < sum; ++i)
+    for (unsigned i = 0; i < size; ++i)
         sum += a[i];
     return sum / size;
 }
