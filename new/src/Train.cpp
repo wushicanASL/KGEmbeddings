@@ -14,11 +14,6 @@ Train::Train(EmbeddingModel * em, SamplingModel * sm, float rate, float margin, 
 
 void Train::launch(const std::string & mode, unsigned nepoch, unsigned output, bool silence) {
     if (mode != "testonly") {
-        if (output == 0)
-            output = nepoch + 1;
-        std::string ext = mode + "-" + getExt();
-        float result;
-        std::thread ** threads = new std::thread*[_threads];
         if (mode == "update") {
             _em->resetNegTriples();
             if (_em->dsname() == "FB15k" || _em->dsname() == "WN18")
@@ -26,6 +21,11 @@ void Train::launch(const std::string & mode, unsigned nepoch, unsigned output, b
             else if (_em->dsname() == "FB13" || _em->dsname() == "WN11")
                 _em->runClassificationTest(std::cout);
         }
+        if (output == 0)
+            output = nepoch + 1;
+        std::string ext = mode + "-" + getExt();
+        float result;
+        std::thread ** threads = new std::thread*[_threads];
         for (unsigned i = 0; i < nepoch; ++i) {
             result = 0;
             _em->cache_store();

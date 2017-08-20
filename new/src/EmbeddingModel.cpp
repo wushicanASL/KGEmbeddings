@@ -6,6 +6,7 @@
 #include <thread>
 #include <algorithm>
 #include <functional>
+#include <iostream>
 #include <atomic>
 
 using namespace sysukg;
@@ -43,6 +44,10 @@ EmbeddingModel::EmbeddingModel(const DataSet & ds, unsigned dim,
 void EmbeddingModel::readFromFile(float ** target, const std::string & filename,
         unsigned n, unsigned m) {
     std::ifstream fin(filename);
+    if (!fin.is_open()) {
+        std::cerr << filename << " not found!" << std::endl;
+        exit(1);
+    }
     for (unsigned i = 0; i < n; ++i)
         for (unsigned j = 0; j < m; ++j)
             fin >> target[i][j];

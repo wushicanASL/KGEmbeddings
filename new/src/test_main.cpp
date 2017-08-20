@@ -15,13 +15,8 @@ using namespace sysukg;
 
 int ArgPos(char *str, int argc, char **argv) {
     for (int a = 1; a < argc; a++)
-        if (!strcmp(str, argv[a])) {
-            if (a == argc - 1) {
-                printf("Argument missing for %s\n", str);
-                exit(1);
-            }
+        if (!strcmp(str, argv[a]))
             return a;
-        }
     return -1;
 }
 
