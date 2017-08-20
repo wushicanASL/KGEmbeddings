@@ -7,7 +7,7 @@
 
 using namespace sysukg;
 
-void updateSampling::spfa(float * distance, unsigned size, node ** graph,
+void updateSampling::spfa(floatType * distance, unsigned size, node ** graph,
         std::set<unsigned> sources) {
     bool * inque = new bool[size];
     for (unsigned i = 0; i < size; ++i) {
@@ -83,7 +83,7 @@ updateSampling::updateSampling(const DataSet & ds, bool with_update_set) :
     }
     delete[] rGraph;
 
-    _pool_weight = new float[_size];
+    _pool_weight = new floatType[_size];
     if (with_update_set) {
         const Triple * _updateset = ds.updateset();
         const unsigned _updatesize = ds.updateSize();
@@ -93,15 +93,15 @@ updateSampling::updateSampling(const DataSet & ds, bool with_update_set) :
             urset.insert(_updateset[i].r);
             ueset.insert(_updateset[i].t);
         }
-        _ew = new float[_entNum],
-        _rw = new float[_relNum];
+        _ew = new floatType[_entNum],
+        _rw = new floatType[_relNum];
         spfa(_ew, _entNum, feGraph, ueset);
         spfa(_rw, _relNum, frGraph, urset);
         for (unsigned i = 0; i < _entNum; ++i)
             _ew[i] = elementWeight(_ew[i]);
         for (unsigned i = 0; i < _relNum; ++i)
             _rw[i] = elementWeight(_rw[i]);
-        float eavg = avg(_ew, _entNum),
+        floatType eavg = avg(_ew, _entNum),
               ravg = avg(_rw, _relNum);
         for (unsigned i = 0; i < _relNum; ++i)
             _rw[i] *= (eavg / ravg);
@@ -117,18 +117,13 @@ updateSampling::updateSampling(const DataSet & ds, bool with_update_set) :
             _pool_weight[i] = triple_weight(_pool[i].t);
         }
     } else {
-        memset(_pool_weight, static_cast<float>(1), _size * sizeof(float));
+        memset(_pool_weight, static_cast<floatType>(1), _size * sizeof(floatType));
     }
     norm(_pool_weight, _size);
 
     // init alias method
-    struct alias_node {
-        unsigned id;
-        float prob;
-        alias_node(unsigned a, float b) : id(a), prob(b) {}
-    };
     std::queue<alias_node> more, less;
-    float temp;
+    floatType temp;
     for (unsigned i = 0; i < _size; ++i) {
         temp = _pool_weight[i] * _size;
         if (temp < 1)
@@ -137,7 +132,7 @@ updateSampling::updateSampling(const DataSet & ds, bool with_update_set) :
             more.push(alias_node(i, temp));
     }
     _alias = new unsigned[_size];
-    _alias_prob = new float[_size];
+    _alias_prob = new floatType[_size];
     for (unsigned i = 1; i < _size; ++i) {
         _alias[less.front().id] = more.front().id;
         _alias_prob[less.front().id] = less.front().prob;
@@ -157,8 +152,8 @@ updateSampling::updateSampling(const DataSet & ds, bool with_update_set) :
     }
 }
 
-void updateSampling::norm(float * a, unsigned size) {
-    float sum = 0;
+void updateSampling::norm(floatType * a, unsigned size) {
+    floatType sum = 0;
     for (unsigned i = 0; i < size; ++i)
         sum += a[i];
     for (unsigned i = 0; i < size; ++i)
@@ -178,8 +173,8 @@ void updateSampling::output(std::ostream & os) const {
            << ' ' << _pool_weight[i] << std::endl;
 }
 
-float updateSampling::avg(const float * a, unsigned size) {
-    float sum = 0;
+floatType updateSampling::avg(const floatType * a, unsigned size) {
+    floatType sum = 0;
     for (unsigned i = 0; i < size; ++i)
         sum += a[i];
     return sum / size;
