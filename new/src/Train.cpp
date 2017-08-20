@@ -19,8 +19,13 @@ void Train::launch(const std::string & mode, unsigned nepoch, unsigned output, b
         std::string ext = mode + "-" + getExt();
         float result;
         std::thread ** threads = new std::thread*[_threads];
-        if (mode == "update")
+        if (mode == "update") {
             _em->resetNegTriples();
+            if (_em->dsname() == "FB15k" || _em->dsname() == "WN18")
+                _em->runLinkPredictionTest(std::cout, _threads);
+            else if (_em->dsname() == "FB13" || _em->dsname() == "WN11")
+                _em->runClassificationTest(std::cout);
+        }
         for (unsigned i = 0; i < nepoch; ++i) {
             result = 0;
             _em->cache_store();
