@@ -141,7 +141,7 @@ updateSampling::updateSampling(const DataSet & ds, bool with_update_set) :
     for (unsigned i = 1; i < _size; ++i) {
         _alias[less.front().id] = more.front().id;
         _alias_prob[less.front().id] = less.front().prob;
-        more.front().prob -= less.front().prob;
+        more.front().prob -= (1 - less.front().prob);
         less.pop();
         if (more.front().prob < 1) {
             less.push(more.front());
