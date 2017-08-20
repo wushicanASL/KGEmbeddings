@@ -101,6 +101,10 @@ updateSampling::updateSampling(const DataSet & ds, bool with_update_set) :
             _ew[i] = elementWeight(_ew[i]);
         for (unsigned i = 0; i < _relNum; ++i)
             _rw[i] = elementWeight(_rw[i]);
+        float eavg = avg(_ew, _entNum),
+              ravg = avg(_rw, _entNum);
+        for (unsigned i = 0; i < _relNum; ++i)
+            _rw[i] *= (eavg / ravg);
 
         for (unsigned i = 0; i < _entNum; ++i)
             delete[] feGraph[i];
@@ -172,6 +176,13 @@ void updateSampling::output(std::ostream & os) const {
     for (unsigned i = 0; i < _size; ++i)
         os << _pool[i].h << ' ' << _pool[i].r << ' ' << _pool[i].t
            << ' ' << _pool_weight[i] << std::endl;
+}
+
+float updateSampling::avg(const float * a, unsigned size) {
+    float sum = 0;
+    for (unsigned i = 0; i < sum; ++i)
+        sum += a[i];
+    return sum / size;
 }
 
 updateSampling::~updateSampling() {

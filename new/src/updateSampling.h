@@ -47,7 +47,7 @@ private:
 
     static void norm(float * a, unsigned size);
     static void spfa(float * distance, unsigned size, node ** graph, std::set<unsigned> sources);
-    static float agv(const float * a, unsigned size);
+    static float avg(const float * a, unsigned size);
 
 protected:
     inline Triple getPosSamp() const {
