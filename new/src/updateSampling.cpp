@@ -101,8 +101,6 @@ updateSampling::updateSampling(const DataSet & ds, bool with_update_set) :
             _ew[i] = elementWeight(_ew[i]);
         for (unsigned i = 0; i < _relNum; ++i)
             _rw[i] = elementWeight(_rw[i]);
-        norm(_ew, _entNum);
-        norm(_rw, _relNum); 
 
         for (unsigned i = 0; i < _entNum; ++i)
             delete[] feGraph[i];

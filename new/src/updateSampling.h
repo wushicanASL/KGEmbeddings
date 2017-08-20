@@ -45,8 +45,9 @@ private:
         return _ew[t.h] + _rw[t.r] + _ew[t.t];
     }
 
-    void norm(float * a, unsigned size);
-    void spfa(float * distance, unsigned size, node ** graph, std::set<unsigned> sources);
+    static void norm(float * a, unsigned size);
+    static void spfa(float * distance, unsigned size, node ** graph, std::set<unsigned> sources);
+    static float agv(const float * a, unsigned size);
 
 protected:
     inline Triple getPosSamp() const {
