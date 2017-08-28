@@ -54,31 +54,45 @@ int main(int argc, char ** argv) {
     if ((i = ArgPos((char*)"-silence", argc, argv)) > 0) silence = true;
 
     ds = new DataSet(dsname);
-    if (emname == "TransE") {
-        em = new TransE(*ds, dim, ext);
-    }
-    else if (emname == "TransH") {
-        em = new TransH(*ds, dim, ext);
-    }
-    else if (emname == "TransD") {
-        em = new TransD(*ds, dim, ext);
-    } else {
-        exit(1);
-    }
-    bool with_update_set = (mode == "update" || mode == "retrain");
-    if (smname == "unif") {
-        sm = new unifSampling(*ds, with_update_set);
-    } else if (smname == "bern") {
-        sm = new bernSampling(*ds, with_update_set);
-    } else if (smname == "update") {
-        sm = new updateSampling(*ds, with_update_set);
-    } else {
-        exit(1);
-    }
 
     if (mode == "generate_np") {
+        if (emname == "TransE") {
+            em = new TransE(*ds, dim, ext);
+        }
+        else if (emname == "TransH") {
+            em = new TransH(*ds, dim, ext);
+        }
+        else if (emname == "TransD") {
+            em = new TransD(*ds, dim, ext);
+        } else {
+            exit(1);
+        }
         em->runLinkPredictionTest(std::cout, threads, true);
+    } 
+    else if (mode == "update_info") {
+        updateSampling(*ds, true).output(std::cout);
     } else {
+        if (emname == "TransE") {
+            em = new TransE(*ds, dim, ext);
+        }
+        else if (emname == "TransH") {
+            em = new TransH(*ds, dim, ext);
+        }
+        else if (emname == "TransD") {
+            em = new TransD(*ds, dim, ext);
+        } else {
+            exit(1);
+        }
+        bool with_update_set = (mode == "update" || mode == "retrain");
+        if (smname == "unif") {
+            sm = new unifSampling(*ds, with_update_set);
+        } else if (smname == "bern") {
+            sm = new bernSampling(*ds, with_update_set);
+        } else if (smname == "update") {
+            sm = new updateSampling(*ds, with_update_set);
+        } else {
+            exit(1);
+        }
         Train train(em, sm, rate, margin, threads);
         train.launch(mode, nepoch, output, silence);
     }
