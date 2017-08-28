@@ -35,7 +35,7 @@ void updateSampling::spfa(floatType * distance, unsigned size, node ** graph,
 }
 
 updateSampling::updateSampling(const DataSet & ds, bool with_update_set) :
-        unifSampling(ds, with_update_set), _relNum(ds.relationNum()) {
+        unifSampling(ds, with_update_set), _relNum(ds.relationNum()), _ds(ds) {
     unsigned ** eGraph = new unsigned*[_entNum],
              ** rGraph = new unsigned*[_relNum];
     for (unsigned i = 0; i < _entNum; ++i) {
@@ -169,8 +169,10 @@ void updateSampling::output(std::ostream & os) const {
         os << ' ' << _rw[i];
     os << std::endl;
     for (unsigned i = 0; i < _size; ++i)
-        os << _pool[i].h << ' ' << _pool[i].r << ' ' << _pool[i].t
-           << ' ' << _pool_weight[i] << std::endl;
+        os << _ds.getEntityName(_pool[i].h) << ' '
+           << _ds.getRelationName(_pool[i].r) << ' '
+           << _ds.getEntityName(_pool[i].t) << ' '
+           << _pool_weight[i] << std::endl;
 }
 
 updateSampling::floatType updateSampling::avg(const floatType * a, unsigned size) {

@@ -25,6 +25,7 @@ private:
         alias_node(unsigned a, floatType b) : id(a), prob(b) {}
     };
 
+    const DataSet & _ds;
     const unsigned _relNum;
     floatType * _pool_weight;
     floatType * _ew, * _rw;
