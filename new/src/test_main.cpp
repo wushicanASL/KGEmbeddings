@@ -75,7 +75,12 @@ int main(int argc, char ** argv) {
     } else {
         exit(1);
     }
-    Train train(em, sm, rate, margin, threads);
-    train.launch(mode, nepoch, output, silence);
+
+    if (mode == "generate_np") {
+        em->runLinkPredictionTest(std::cout, threads, true);
+    } else {
+        Train train(em, sm, rate, margin, threads);
+        train.launch(mode, nepoch, output, silence);
+    }
     return 0;
 }

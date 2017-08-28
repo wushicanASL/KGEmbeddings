@@ -163,7 +163,7 @@ public:
     }
 
     void runClassificationTest(std::ostream & os) const;
-    void runLinkPredictionTest(std::ostream & os, unsigned threadnum = 4) const;
+    void runLinkPredictionTest(std::ostream & os, unsigned threadnum = 4, bool np = false) const;
 
     inline unsigned dim() const {
         return _dim;

@@ -8,6 +8,9 @@
 #include <functional>
 #include <iostream>
 #include <atomic>
+#include <mutex>
+#include <vector>
+#include <queue>
 
 using namespace sysukg;
 
@@ -81,7 +84,15 @@ void EmbeddingModel::output(const std::string & ext) const {
         delete threads[i];
 }
 
-void EmbeddingModel::runLinkPredictionTest(std::ostream & os, unsigned threadnum) const {
+void EmbeddingModel::runLinkPredictionTest(std::ostream & os, unsigned threadnum, bool np) const {
+    static const unsigned NT_LIMIT = 10;
+    typedef std::pair<Triple, float> T_with_Score;
+    struct comp {
+        bool operator()(const T_with_Score & left, const T_with_Score & right) const {
+            return left.second > right.second;
+        }
+    };
+
     std::atomic<unsigned> hrsum, trsum, hrhit, trhit,
                           hfsum, tfsum, hfhit, tfhit;
     std::atomic<unsigned> testnum;
@@ -89,10 +100,12 @@ void EmbeddingModel::runLinkPredictionTest(std::ostream & os, unsigned threadnum
     hrsum.store(0); trsum.store(0); hrhit.store(0); trhit.store(0);
     hfsum.store(0); tfsum.store(0); hfhit.store(0); tfhit.store(0);
     const Triple * ds_pos_hrt_end = _ds.pos_hrt() + _ds.posSize();
+    std::mutex os_lock;
     std::function<void(unsigned, unsigned)> func =
         [&](unsigned s, unsigned t) -> void {
-            float baseScore;
+            float baseScore, tempScore;
             unsigned hraw, hfiltered, traw, tfiltered;
+            std::priority_queue<T_with_Score, std::vector<T_with_Score>, comp> neg_triples;
             Triple hr, tr;
             for (unsigned i = s; i < t; ++i)
                 if (_ds.testset()[i].f) {
@@ -103,18 +116,41 @@ void EmbeddingModel::runLinkPredictionTest(std::ostream & os, unsigned threadnum
                     hr = tr = _ds.testset()[i];
                     for (unsigned j = 0; j < _entSize; ++j) {
                         hr.h = tr.t = j;
-                        if (calc_sum(hr) < baseScore)
+                        tempScore = calc_sum(hr);
+                        if (tempScore < baseScore)
                             if (hr.h != _ds.testset()[i].h) {
                                 ++hraw;
                                 if (look_for(_ds.pos_hrt(), ds_pos_hrt_end, hr, Triple_hrt_less) != nullptr)
                                     ++hfiltered;
+                                else
+                                    if (np) {
+                                        neg_triples.push(T_with_Score(hr, tempScore));
+                                        if (neg_triples.size() > NT_LIMIT)
+                                            neg_triples.pop();
+                                    }
                             }
-                        if (calc_sum(tr) < baseScore)
+                        tempScore = calc_sum(tr);
+                        if (tempScore < baseScore)
                             if (tr.t != _ds.testset()[i].t) {
                                 ++traw;
                                 if (look_for(_ds.pos_hrt(), ds_pos_hrt_end, tr, Triple_hrt_less) != nullptr)
                                     ++tfiltered;
+                                else
+                                    if (np) {
+                                        neg_triples.push(T_with_Score(tr, tempScore));
+                                        if (neg_triples.size() > NT_LIMIT)
+                                            neg_triples.pop();
+                                    }
                             }
+                    }
+                    while (!neg_triples.empty()) {
+                        os_lock.lock();
+                        os << _ds.getEntityName(neg_triples.top().first.h) << '\t'
+                           << _ds.getRelationName(neg_triples.top().first.r) << '\t'
+                           << _ds.getEntityName(neg_triples.top().first.t) << '\t'
+                           << "-1" << std::endl;
+                        os_lock.unlock();
+                        neg_triples.pop();
                     }
                     hrsum += hraw;
                     hfiltered = hraw - hfiltered;
@@ -142,8 +178,9 @@ void EmbeddingModel::runLinkPredictionTest(std::ostream & os, unsigned threadnum
     for (unsigned i = 0; i < threadnum; ++i)
         threads[i]->join();
     float ftestnum = static_cast<float>(testnum);
-    os << hrsum/ftestnum << ' ' << hrhit/ftestnum << ' ' << hfsum/ftestnum << ' ' << hfhit/ftestnum << ' '
-       << trsum/ftestnum << ' ' << trhit/ftestnum << ' ' << tfsum/ftestnum << ' ' << tfhit/ftestnum << std::endl;
+    if (!np)
+        os << hrsum/ftestnum << ' ' << hrhit/ftestnum << ' ' << hfsum/ftestnum << ' ' << hfhit/ftestnum << ' '
+           << trsum/ftestnum << ' ' << trhit/ftestnum << ' ' << tfsum/ftestnum << ' ' << tfhit/ftestnum << std::endl;
     for (unsigned i = 0; i < threadnum; ++i)
         delete threads[i];
 }
