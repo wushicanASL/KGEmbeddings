@@ -27,6 +27,7 @@ private:
 
     const DataSet & _ds;
     const unsigned _relNum;
+    const floatType _alpha;
     floatType * _pool_weight;
     floatType * _ew, * _rw;
     floatType * _alias_prob;
@@ -44,7 +45,7 @@ private:
         if (distance == INF_DISTANCE)
             return 0;
         else
-            return exp(-distance);
+            return exp(- _alpha * distance);
     }
     inline floatType edge_weight(unsigned count) const {
         return 1.0 / count;
@@ -66,7 +67,7 @@ protected:
     }
 
 public:
-    explicit updateSampling(const DataSet & ds, bool with_update_set = true);
+    explicit updateSampling(const DataSet & ds, floatType alpha = 1, bool with_update_set = true);
     void output(std::ostream & os) const;
     ~updateSampling();
 };

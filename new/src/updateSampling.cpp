@@ -34,8 +34,8 @@ void updateSampling::spfa(floatType * distance, unsigned size, node ** graph,
     delete[] inque;
 }
 
-updateSampling::updateSampling(const DataSet & ds, bool with_update_set) :
-        unifSampling(ds, with_update_set), _relNum(ds.relationNum()), _ds(ds) {
+updateSampling::updateSampling(const DataSet & ds, floatType alpha, bool with_update_set) :
+        unifSampling(ds, with_update_set), _relNum(ds.relationNum()), _ds(ds), _alpha(alpha) {
     unsigned ** eGraph = new unsigned*[_entNum],
              ** rGraph = new unsigned*[_relNum];
     for (unsigned i = 0; i < _entNum; ++i) {

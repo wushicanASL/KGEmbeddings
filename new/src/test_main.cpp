@@ -30,13 +30,14 @@ int main(int argc, char ** argv) {
                 emname = "TransE",  // {TransE, TransH, TransD}
                 smname = "unif",    // {unif, bern, update}
                 ext = "",
-                mode = "retrain"; // {testonly, retrain, basetrain, update}
+                mode = "retrain"; // {testonly, retrain, basetrain, update, generate_np, update_info}
     unsigned nepoch = 1000,
              dim = 50,
              threads = 4,
              output = 0;
     float margin = 1,
-          rate = 0.001;
+          rate = 0.001,
+          alpha = 1;
     bool silence = false;
 
     int i;
@@ -52,6 +53,7 @@ int main(int argc, char ** argv) {
     if ((i = ArgPos((char*)"-mode", argc, argv)) > 0) mode = argv[i + 1];
     if ((i = ArgPos((char*)"-output", argc, argv)) > 0) output = atoi(argv[i + 1]);
     if ((i = ArgPos((char*)"-silence", argc, argv)) > 0) silence = true;
+    if ((i = ArgPos((char*)"-alpha", argc, argv)) > 0) alpha = atof(argv[i + 1]);
 
     ds = new DataSet(dsname);
 
@@ -89,7 +91,7 @@ int main(int argc, char ** argv) {
         } else if (smname == "bern") {
             sm = new bernSampling(*ds, with_update_set);
         } else if (smname == "update") {
-            sm = new updateSampling(*ds, with_update_set);
+            sm = new updateSampling(*ds, alpha, with_update_set);
         } else {
             exit(1);
         }
