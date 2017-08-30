@@ -15,7 +15,7 @@ namespace sysukg {
 template<typename Any>
 const Any * look_for(const Any * begin, const Any * end, const Any & target, 
         bool (*cmp)(const Any &, const Any &)) {
-    const unsigned num = (end - begin) / sizeof(Any);
+    const unsigned num = end - begin;
     unsigned left = 0, right = num, mid = num >> 1;
     while (left < right)
         if (cmp(*(begin + mid), target)) {
@@ -32,7 +32,7 @@ const Any * look_for(const Any * begin, const Any * end, const Any & target,
 }
 template<typename Any>
 const Any * look_for(const Any * begin, const Any * end, const Any & target) {
-    const unsigned num = (end - begin) / sizeof(Any);
+    const unsigned num = end - begin;
     unsigned left = 0, right = num, mid = num >> 1;
     while (left < right)
         if (*(begin + mid) < target) {
