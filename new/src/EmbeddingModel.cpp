@@ -85,7 +85,7 @@ void EmbeddingModel::output(const std::string & ext) const {
 }
 
 void EmbeddingModel::runLinkPredictionTest(std::ostream & os, unsigned threadnum, bool np) const {
-    static const unsigned NT_LIMIT = 10;
+    static const unsigned NT_LIMIT = 1;
     typedef std::pair<Triple, float> T_with_Score;
     struct comp {
         bool operator()(const T_with_Score & left, const T_with_Score & right) const {
